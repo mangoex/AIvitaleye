@@ -265,19 +265,27 @@ app.post("/api/analyze-photo", async (req, res) => {
     }
 
     const prompt = `
-Analiza detenidamente esta fotografía macro del iris de un paciente clínico.
+Analiza detenidamente esta fotografía macro/micro del iris de un paciente clínico.
 - Nombre/ID Paciente: ${patientName || "Anónimo"}
 - Edad: ${age || "No especificada"}
 - Género: ${gender || "No especificado"}
 - Notas Clínicas Adicionales: ${additionalNotes || "Ninguna"}
 
-Realiza tu evaluación iridológica detallada siguiendo minuciosamente cada paso del protocolo clínico:
-1. Identifica la constitución primaria (Linfática, Hematógena, Mixta/Biliar) observando el color general del estroma y la disposición de las fibras.
-2. Determina la densidad estromal (Seda, Satén, Lino, Arpillera) valorando la resiliencia y separación de las trabéculas.
-3. Examina detalladamente el estroma en busca de signos estructurales (Lagunas, criptas, rayos solares, anillos de tensión o espasmo).
-4. Analiza signos de pigmentación, heterocromías (central o sectorial) e identifica posibles órganos de choque metabólico según el iridograma tridimensional.
-5. Examina el estado y simetría de la Corona del Sistema Nervioso Autónomo (banda del colarete).
-6. Identifica signos periféricos (como borde de costras, anillo de sodio/colesterol o arco senil).
+CRÍTICO: No des un diagnóstico de plantilla genérico. Para demostrar que estás evaluando ESTA IMAGEN ESPECÍFICA y no un texto genérico de internet, debes realizar un análisis grounded en la imagen física. 
+
+Sigue estas estrictas directrices en cada sección:
+
+1. EVIDENCIA VISUAL DIRECTA (Grounded analysis):
+   - Describe las características visuales reales de la imagen: la resolución de la foto, la tonalidad exacta del iris (ej. "azul grisáceo", "marrón profundo", "verde oliva con sobrecarga dorada"), y la nitidez de las trabéculas.
+   - Describe detalladamente la presencia y ubicación de destellos de luz de la cámara (glare/reflejos) o sombras sobre el iris que limiten la visibilidad de ciertas zonas (ej. "reflejo blanco de captura en el cuadrante supero-izquierdo a las 10:30"). Esto demuestra que realmente estás "viendo" la fotografía real de este paciente.
+   - Si la foto es borrosa o de baja iluminación, indícalo de forma profesional y explica qué sectores del iridograma no se pueden valorar con precisión por este motivo.
+
+2. PROTOCOLO DE EVALUACIÓN SECTORIAL Y SIGNOS ESPECÍFICOS:
+   - Identifica la constitución biológica (Linfática, Hematógena, o Mixta/Biliar) justificando con lo que observas (ej. "fibras radiales blancas onduladas bien delineadas" o "estroma aterciopelado homogéneo pigmentado").
+   - Evalúa la densidad estromal estimando la resistencia del terreno orgánico, vinculando la densidad a las zonas que se ven en la foto.
+   - Busca y ubica de manera explícita signos iridianos clave indicando su localización exacta utilizando las posiciones del reloj iridológico (por ejemplo: "laguna en forma de ojal a las 5 en punto en la zona renal", "rayo solar que se extiende de la corona a la periferia a las 2 en punto", o "anillos de contracción concéntricos visibles en la zona de las 4 a las 8").
+   - Describe el estado de la Corona del Sistema Nervioso Autónomo (banda del colarete): si es regular, distendida o contraída, e indica en qué posiciones horarias del reloj se aprecian estas variaciones.
+   - Si un signo clásico no es visible en este iris específico, indica explícitamente "No se aprecian signos de... en esta toma" en lugar de inventarlos.
 
 Escribe el informe final respetando estrictamente el formato clínico estructurado:
 - ### 📋 Resumen Constitucional (Terreno biológico)
@@ -285,13 +293,13 @@ Escribe el informe final respetando estrictamente el formato clínico estructura
 - ### 🎯 Interpretación Fisiológica (Relación causa-efecto en los sistemas orgánicos)
 - ### 💡 Recomendaciones de Soporte (Orientación naturopática/clínica basada en el terreno observado)
 
-Recuerda: Usa terminología científica e iridológica pura. No nombres enfermedades formales (como diabetes o cirrosis), sino debilidad tisular, acidosis tisular, congestión hepatobiliar, hipofunción renal, etc.
+Recuerda: Usa terminología científica e iridológica pura de las escuelas Josef Deck, Josef Angerer o Bernard Jensen. No nombres enfermedades formales (como diabetes o cirrosis), sino debilidad tisular, acidosis tisular, congestión hepatobiliar, hipofunción renal, etc.
 `;
 
     const report = await callAIService({
       prompt,
       systemInstruction: SYSTEM_INSTRUCTION,
-      temperature: 0.3,
+      temperature: 0.55,
       image: {
         base64: imageBase64,
         mimeType: mimeType || "image/jpeg",

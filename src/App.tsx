@@ -40,11 +40,17 @@ const generateProceduralIris = (type: number): string => {
   const ctx = canvas.getContext("2d");
   if (!ctx) return "";
 
+  // Introduce randomized parameters to make each simulated image unique
   const cx = 300;
   const cy = 300;
   const outerR = 260;
-  const pupilR = 90;
-  const crownR = 150;
+  const pupilR = 82 + Math.floor(Math.random() * 16); // Random pupil size (82 to 98)
+  const crownR = 142 + Math.floor(Math.random() * 16); // Random crown size (142 to 158)
+  
+  // Random oscillation parameters for the autonomic crown
+  const crownFreq1 = 5 + Math.floor(Math.random() * 4); // 5 to 8
+  const crownFreq2 = 2 + Math.floor(Math.random() * 3); // 2 to 4
+  const crownAmp1 = 6 + Math.random() * 6; // 6 to 12
 
   // Background
   ctx.fillStyle = "#090d16";
@@ -123,7 +129,7 @@ const generateProceduralIris = (type: number): string => {
   const crownPoints = 36;
   for (let i = 0; i <= crownPoints; i++) {
     const angle = (i / crownPoints) * Math.PI * 2;
-    const r = crownR + Math.sin(angle * 7) * 8 + (Math.sin(angle * 3) * 4);
+    const r = crownR + Math.sin(angle * crownFreq1) * crownAmp1 + (Math.sin(angle * crownFreq2) * 4);
     const px = cx + Math.cos(angle) * r;
     const py = cy + Math.sin(angle) * r;
     if (i === 0) {
@@ -204,15 +210,20 @@ const generateProceduralIris = (type: number): string => {
   ctx.fillStyle = "#000000";
   ctx.fill();
 
-  // Glare
+  // Glare (randomized angle/distance to prove uniqueness in every capture)
+  const glareAngle = -Math.PI / 4 + (Math.random() - 0.5) * 0.4; // Around top-left quadrant
+  const glareDist = 35 + Math.random() * 10;
+  const glareX = cx + Math.cos(glareAngle) * glareDist;
+  const glareY = cy + Math.sin(glareAngle) * glareDist;
+
   ctx.beginPath();
-  ctx.arc(cx - 35, cy - 35, 12, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+  ctx.arc(glareX, glareY, 11 + Math.random() * 3, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.78)";
   ctx.fill();
 
   ctx.beginPath();
-  ctx.arc(cx - 50, cy - 15, 4, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+  ctx.arc(glareX - 15, glareY + 15, 3.5, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
   ctx.fill();
 
   // Crosshair Boundary
