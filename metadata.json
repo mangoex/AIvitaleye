@@ -1,0 +1,6 @@
+{
+  "name": "Analizador de Iridología Clínica",
+  "description": "Plataforma profesional para el análisis de la topografía del iris, tipologías constitucionales y signos iridianos con soporte clínico e interpretaciones estructuradas.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
