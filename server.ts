@@ -33,6 +33,139 @@ function getGeminiClient(): GoogleGenAI {
   return aiClient;
 }
 
+// Unified callAIService supporting both OpenRouter (with any model) and Google GenAI SDK
+async function callAIService({
+  prompt,
+  systemInstruction,
+  temperature = 0.3,
+  image = null,
+  history = [],
+}: {
+  prompt: string;
+  systemInstruction: string;
+  temperature?: number;
+  image?: { base64: string; mimeType: string } | null;
+  history?: Array<{ role: string; text: string }>;
+}): Promise<string> {
+  const openRouterKey = process.env.OPENROUTER_API_KEY;
+
+  if (openRouterKey) {
+    // Standard OpenRouter chat completions format
+    const model = process.env.OPENROUTER_MODEL || "google/gemini-2.5-flash";
+    const messages: any[] = [];
+
+    if (systemInstruction) {
+      messages.push({ role: "system", content: systemInstruction });
+    }
+
+    // Add chat history if present
+    for (const h of history) {
+      messages.push({
+        role: h.role === "user" ? "user" : "assistant",
+        content: h.text,
+      });
+    }
+
+    // Add the current message (optionally multimodal)
+    if (image) {
+      const cleanBase64 = image.base64.replace(/^data:image\/\w+;base64,/, "");
+      messages.push({
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
+          {
+            type: "image_url",
+            image_url: {
+              url: `data:${image.mimeType};base64,${cleanBase64}`,
+            },
+          },
+        ],
+      });
+    } else {
+      messages.push({ role: "user", content: prompt });
+    }
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${openRouterKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com/magoex/iridoclinic",
+        "X-Title": "Iridoclinic Professional Suite",
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`OpenRouter Error (${response.status}): ${errText}`);
+    }
+
+    const data = await response.json();
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      return data.choices[0].message.content || "";
+    } else {
+      throw new Error(`Unexpected OpenRouter response structure: ${JSON.stringify(data)}`);
+    }
+  } else {
+    // Default: use Google GenAI SDK
+    const client = getGeminiClient();
+
+    if (image) {
+      const cleanBase64 = image.base64.replace(/^data:image\/\w+;base64,/, "");
+      const imagePart = {
+        inlineData: {
+          mimeType: image.mimeType,
+          data: cleanBase64,
+        },
+      };
+      const textPart = { text: prompt };
+
+      const response = await client.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: { parts: [imagePart, textPart] },
+        config: {
+          systemInstruction,
+          temperature,
+        },
+      });
+      return response.text || "";
+    } else if (history && history.length > 0) {
+      // Chat with history using Google GenAI SDK
+      const mappedHistory = history.map((item) => ({
+        role: item.role === "user" ? "user" : "model",
+        parts: [{ text: item.text }],
+      }));
+
+      const chat = client.chats.create({
+        model: "gemini-3.5-flash",
+        history: mappedHistory,
+        config: {
+          systemInstruction,
+          temperature,
+        },
+      });
+
+      const response = await chat.sendMessage({ message: prompt });
+      return response.text || "";
+    } else {
+      const response = await client.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          systemInstruction,
+          temperature,
+        },
+      });
+      return response.text || "";
+    }
+  }
+}
+
 // SYSTEM INSTRUCTIONS FOR THE IRIDOLOGY EXPERT
 const SYSTEM_INSTRUCTION = `
 Actuarás como un Iridólogo Clínico Profesional de nivel avanzado, con un enfoque holístico, científico y basado en la evidencia médica de las escuelas de iridología validadas (como la Escuela Alemana de Josef Deck/Angerer y la Escuela Americana de Bernard Jensen adaptada a la clínica moderna). Tu objetivo no es la adivinación, sino el análisis de la topografía del iris para identificar terrenos genéticos, predisposiciones a la inflamación, niveles de toxicidad tisular y la reactividad del sistema nervioso autónomo.
@@ -76,7 +209,6 @@ Debes estructurar tu salida SIEMPRE con la siguiente jerarquía visual exacta (e
 // Endpoint for manual structured evaluation
 app.post("/api/analyze-manual", async (req, res) => {
   try {
-    const client = getGeminiClient();
     const {
       patientName,
       age,
@@ -110,16 +242,13 @@ DATOS OBSERVADOS DE LA TOPOGRAFÍA DEL IRIS:
 Por favor, procesa estos signos según el protocolo de lectura diagnóstica estructurado. Recuerda usar terminología iridológica clínica y respetar estrictamente la restricción de NO diagnosticar enfermedades nominales directas, sino terrenos, debilidades tisulares, estados inflamatorios, metabólicos o nerviosos. Sigue la jerarquía visual requerida en tu respuesta.
 `;
 
-    const response = await client.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: prompt,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.2,
-      },
+    const report = await callAIService({
+      prompt,
+      systemInstruction: SYSTEM_INSTRUCTION,
+      temperature: 0.2,
     });
 
-    res.json({ report: response.text });
+    res.json({ report });
   } catch (error: any) {
     console.error("Error in analyze-manual:", error);
     res.status(500).json({ error: error.message || "Error interno del servidor" });
@@ -129,24 +258,13 @@ Por favor, procesa estos signos según el protocolo de lectura diagnóstica estr
 // Endpoint for multimodal photo evaluation
 app.post("/api/analyze-photo", async (req, res) => {
   try {
-    const client = getGeminiClient();
     const { imageBase64, mimeType, patientName, age, gender, additionalNotes } = req.body;
 
     if (!imageBase64) {
       return res.status(400).json({ error: "No se ha proporcionado ninguna imagen base64." });
     }
 
-    const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-
-    const imagePart = {
-      inlineData: {
-        mimeType: mimeType || "image/jpeg",
-        data: cleanBase64,
-      },
-    };
-
-    const textPart = {
-      text: `
+    const prompt = `
 Analiza detenidamente esta fotografía macro del iris de un paciente clínico.
 - Nombre/ID Paciente: ${patientName || "Anónimo"}
 - Edad: ${age || "No especificada"}
@@ -168,19 +286,19 @@ Escribe el informe final respetando estrictamente el formato clínico estructura
 - ### 💡 Recomendaciones de Soporte (Orientación naturopática/clínica basada en el terreno observado)
 
 Recuerda: Usa terminología científica e iridológica pura. No nombres enfermedades formales (como diabetes o cirrosis), sino debilidad tisular, acidosis tisular, congestión hepatobiliar, hipofunción renal, etc.
-`,
-    };
+`;
 
-    const response = await client.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: { parts: [imagePart, textPart] },
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.3,
+    const report = await callAIService({
+      prompt,
+      systemInstruction: SYSTEM_INSTRUCTION,
+      temperature: 0.3,
+      image: {
+        base64: imageBase64,
+        mimeType: mimeType || "image/jpeg",
       },
     });
 
-    res.json({ report: response.text });
+    res.json({ report });
   } catch (error: any) {
     console.error("Error in analyze-photo:", error);
     res.status(500).json({ error: error.message || "Error interno del servidor" });
@@ -190,20 +308,16 @@ Recuerda: Usa terminología científica e iridológica pura. No nombres enfermed
 // Endpoint for general clinical iridology Q&A chat
 app.post("/api/chat", async (req, res) => {
   try {
-    const client = getGeminiClient();
     const { message, history } = req.body;
 
-    const chat = client.chats.create({
-      model: "gemini-3.5-flash",
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION + "\n\nResponde como un colega experto o mentor docente en iridología clínica profesional. Mantén un tono sumamente técnico, respetuoso, didáctico y ético.",
-        temperature: 0.4,
-      },
+    const reply = await callAIService({
+      prompt: message,
+      systemInstruction: SYSTEM_INSTRUCTION + "\n\nResponde como un colega experto o mentor docente en iridología clínica profesional. Mantén un tono sumamente técnico, respetuoso, didáctico y ético.",
+      temperature: 0.4,
+      history: history || [],
     });
 
-    // Send the message
-    const response = await chat.sendMessage({ message });
-    res.json({ reply: response.text });
+    res.json({ reply });
   } catch (error: any) {
     console.error("Error in chat:", error);
     res.status(500).json({ error: error.message || "Error interno del servidor" });
