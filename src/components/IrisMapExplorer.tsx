@@ -15,10 +15,12 @@ export default function IrisMapExplorer({ report }: IrisMapExplorerProps) {
   const getRelevantFindings = (): string[] => {
     if (!report || !selectedSector.keywords) return [];
     
-    // Dividir el reporte por saltos de línea (párrafos/viñetas) y finales de oración
+    // Convertir el reporte en oraciones usando lookaheads (compatible con todos los navegadores)
     const chunks = report
-      .split(/(?:\\n|(?<=[.!?])\\s+)/)
-      .map(s => s.trim().replace(/^[-*]\\s*/, '')) // Limpiar caracteres de lista
+      .replace(/([.!?])\\s+(?=[A-Z0-9#])/g, "$1\\n") // Inyectar saltos de línea tras cada punto
+      .replace(/###.*?\\n/g, "") // Limpiar títulos markdown
+      .split("\\n")
+      .map(s => s.trim().replace(/^[-*]\\s*/, "")) // Limpiar viñetas
       .filter(s => s.length > 15);
       
     const matches = chunks.filter(sentence => {
