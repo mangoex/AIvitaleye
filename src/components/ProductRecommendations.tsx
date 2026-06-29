@@ -18,6 +18,7 @@ interface Product {
 interface AIRecommendation {
   id: string;
   priority: number;
+  system?: string;
   justification: string;
 }
 
@@ -181,7 +182,14 @@ export function ProductRecommendations({ report }: ProductRecommendationsProps) 
                     </div>
 
                     <div className="flex justify-between items-start mb-3 pr-20">
-                      <h3 className="text-lg font-bold text-white tracking-wide">{item.productInfo?.name}</h3>
+                      <div className="space-y-1">
+                        <h3 className="text-lg font-bold text-white tracking-wide">{item.productInfo?.name}</h3>
+                        {item.system && (
+                          <div className="inline-block bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-medium px-2 py-0.5 rounded">
+                            {item.system}
+                          </div>
+                        )}
+                      </div>
                       <div className="text-emerald-400 font-bold whitespace-nowrap">
                         ${item.productInfo?.price} MXN
                       </div>

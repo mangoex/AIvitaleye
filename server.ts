@@ -378,6 +378,7 @@ Cada objeto del arreglo debe tener la siguiente estructura exacta:
 {
   "id": "id-del-producto",
   "priority": número del 1 al 3 (donde 1 es Indispensable/Principal, 2 es Muy Recomendado, 3 es Opcional/Preventivo),
+  "system": "El nombre del sistema del cuerpo al que apoya este producto (ej. 'Sistema Nervioso', 'Cardiovascular', 'Sistema Digestivo', 'Soporte Inmunológico', etc.)",
   "justification": "Breve explicación de 2 o 3 líneas de por qué este producto ayudará al paciente, mencionando los ingredientes clave y el hallazgo del reporte que justifica la recomendación."
 }
 

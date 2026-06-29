@@ -674,9 +674,9 @@ export default function App() {
                     : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
                 }`}
               >
-                <div className="flex items-center gap-2.5">
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Asistente / Mentor Iridólogo</span>
+                <div className="flex items-center gap-2.5 text-left">
+                  <MessageSquare className="w-4 h-4 flex-shrink-0" />
+                  <span className="leading-tight mt-0.5">Asistente / Mentor<br/>Iridólogo</span>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 opacity-60" />
               </button>
