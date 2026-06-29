@@ -35,7 +35,7 @@ export default function IrisMapExplorer({ report }: IrisMapExplorerProps) {
   const dynamicFindings = getRelevantFindings();
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-slate-900/50 p-6 rounded-2xl border border-slate-800 backdrop-blur-sm" id="map-explorer-container">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:bg-slate-900/50 lg:p-6 lg:rounded-2xl lg:border lg:border-slate-800 lg:backdrop-blur-sm" id="map-explorer-container">
       {/* Visual SVG Iris Map (Left Side) */}
       <div className="lg:col-span-6 flex flex-col items-center justify-center p-4 bg-slate-950 rounded-xl border border-slate-800/80 relative overflow-hidden min-h-[400px]">
         <div className="absolute top-4 left-4 flex items-center gap-2 bg-slate-900/90 px-3 py-1.5 rounded-full border border-slate-800 text-xs font-mono text-emerald-400">
