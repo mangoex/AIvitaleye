@@ -6,7 +6,9 @@ import {
   ChatMessage,
   CLINICAL_GLOSSARY,
 } from "./types";
+import { ManualEvaluationForm } from "./components/ManualEvaluationForm";
 import IrisMapExplorer from "./components/IrisMapExplorer";
+import { BodySystemsMap } from "./components/BodySystemsMap";
 import ReportViewer from "./components/ReportViewer";
 import {
   Sparkles,
@@ -617,6 +619,24 @@ export default function App() {
                 <ChevronRight className="w-3.5 h-3.5 opacity-60" />
               </button>
 
+              <button
+                onClick={() => {
+                  setActiveTab("systems");
+                  setSelectedHistoricalReport(null);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
+                  activeTab === "systems" && !selectedHistoricalReport
+                    ? "bg-emerald-950/50 text-emerald-400 border-l-2 border-emerald-500"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Activity className="w-4 h-4" />
+                  <span>Sistemas del Cuerpo</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+              </button>
+
               <div className="h-px bg-slate-800/60 my-2" />
 
               <div className="text-[10px] text-slate-500 font-mono font-bold uppercase tracking-widest px-2 mb-2">
@@ -1155,6 +1175,25 @@ export default function App() {
                     </div>
 
                     <IrisMapExplorer report={report} />
+                  </div>
+                </div>
+              )}
+
+              {/* C2. INTERACTIVE BODY SYSTEMS MAP */}
+              {activeTab === "systems" && (
+                <div className="space-y-6">
+                  <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                    <div className="border-b border-slate-800 pb-4 mb-6">
+                      <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-emerald-400" />
+                        Sistemas del Cuerpo
+                      </h2>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Visualice los niveles de riesgo teórico por sistema corporal basándose en los hallazgos iridológicos generales de la constitución seleccionada.
+                      </p>
+                    </div>
+
+                    <BodySystemsMap gender={patient.gender} />
                   </div>
                 </div>
               )}
