@@ -1542,7 +1542,7 @@ export default function App() {
             className={`flex flex-col items-center p-2 rounded-lg transition-colors w-16 ${activeTab === "recommendations" && !selectedHistoricalReport ? "text-emerald-400" : "text-slate-500 hover:text-slate-300"}`}
           >
             <ShoppingBag className={`w-6 h-6 mb-1 ${activeTab === "recommendations" && !selectedHistoricalReport ? "fill-emerald-400/20" : ""}`} />
-            <span className="text-[10px] font-medium leading-none">Recetas</span>
+            <span className="text-[10px] font-medium leading-none">Productos</span>
           </button>
         </div>
       </div>
