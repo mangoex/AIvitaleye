@@ -6,7 +6,6 @@ import {
   ChatMessage,
   CLINICAL_GLOSSARY,
 } from "./types";
-import { ManualEvaluationForm } from "./components/ManualEvaluationForm";
 import IrisMapExplorer from "./components/IrisMapExplorer";
 import { BodySystemsMap } from "./components/BodySystemsMap";
 import { ProductRecommendations } from "./components/ProductRecommendations";

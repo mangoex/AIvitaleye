@@ -393,8 +393,16 @@ La propiedad "id" debe coincidir exactamente con el "id" del catálogo proporcio
     });
 
     try {
-      // Intentar limpiar posibles backticks (ej. ```json ... ```) si la IA ignora la regla
-      const cleanJson = jsonString.replace(/^```json/i, "").replace(/^```/, "").replace(/```$/, "").trim();
+      let cleanJson = jsonString.trim();
+      // Extraer el arreglo JSON buscando el primer '[' y el último ']'
+      const startIdx = cleanJson.indexOf("[");
+      const endIdx = cleanJson.lastIndexOf("]");
+      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+        cleanJson = cleanJson.substring(startIdx, endIdx + 1);
+      } else {
+        // Fallback: limpiar posibles backticks de markdown
+        cleanJson = cleanJson.replace(/^```json/i, "").replace(/^```/, "").replace(/```$/, "").trim();
+      }
       const recommendations = JSON.parse(cleanJson);
       res.json({ recommendations });
     } catch (parseError) {
