@@ -1131,11 +1131,23 @@ export default function App() {
               {/* C. INTERACTIVE ZONE MAP EXPLORER */}
               {activeTab === "explorer" && (
                 <div className="space-y-6">
+                  {/* UX Disclaimer for Users */}
+                  <div className="bg-amber-950/40 border border-amber-900/60 rounded-xl p-4 flex gap-3 items-start shadow-sm">
+                    <Info className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-bold text-amber-400 uppercase tracking-wide">Atención: Esta sección NO es el resultado de su análisis de foto.</p>
+                      <p className="text-xs text-amber-200/80 leading-relaxed font-sans">
+                        El "Mapa de Zonas Clínico" es únicamente una enciclopedia estática e interactiva. Los textos aquí mostrados son fijos y le enseñan qué órgano representa cada zona del ojo. 
+                        <strong> Los resultados verdaderos de la IA aparecerán directamente en la pestaña "Análisis Multimodal (Foto)" al procesar una imagen.</strong>
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
                     <div className="border-b border-slate-800 pb-4 mb-6">
                       <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
                         <Map className="w-5 h-5 text-emerald-400" />
-                        Mapa Iridológico Interactivo de Zonas Orgánicas
+                        Mapa Iridológico Interactivo (Referencia Educativa)
                       </h2>
                       <p className="text-xs text-slate-400 mt-1">
                         Explore los diferentes sectores del iris según los mapas clínicos clásicos. Haga clic en cada cuadrante para conocer qué sistemas orgánicos se proyectan en él y su interpretación diagnóstica de terreno.
