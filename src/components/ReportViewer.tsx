@@ -139,7 +139,7 @@ export default function ReportViewer({
           </button>
           <button
             onClick={handleDownload}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium transition-colors border border-slate-700/50"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium transition-colors border border-slate-700/50"
             title="Descargar archivo TXT"
           >
             <Download className="w-3.5 h-3.5" />
@@ -147,7 +147,7 @@ export default function ReportViewer({
           </button>
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium transition-colors border border-slate-700/50"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium transition-colors border border-slate-700/50"
             title="Imprimir informe"
           >
             <Printer className="w-3.5 h-3.5" />
@@ -164,7 +164,7 @@ export default function ReportViewer({
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{isSaved ? "Guardado en Historial" : "Guardar en Registro"}</span>
+              <span>{isSaved ? "Guardado" : "Guardar"}</span>
             </button>
           )}
         </div>
