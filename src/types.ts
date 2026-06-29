@@ -1,3 +1,31 @@
+export interface User {
+  id: number;
+  email: string;
+  role: "admin" | "user";
+  created_at?: string;
+}
+
+export interface Patient {
+  id: number;
+  user_id: number;
+  name: string;
+  age: number;
+  gender: string;
+  notes: string;
+  created_at?: string;
+}
+
+export interface DbReport {
+  id: number;
+  patient_id: number;
+  user_id: number;
+  type: "manual" | "photo";
+  date: string;
+  evaluation_json?: string; // JSON string of IridologyEvaluation
+  report_text: string;
+  created_at?: string;
+}
+
 export interface PatientData {
   name: string;
   age: string;

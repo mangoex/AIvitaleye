@@ -4,11 +4,36 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import { initDb, query, hashPassword, verifyPassword } from "./src/db";
 
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
+const JWT_SECRET = process.env.JWT_SECRET || "iridology-jwt-secret-982";
+
+// Middleware to authenticate JWT tokens
+function authenticateToken(req: any, res: any, next: any) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "Token de acceso faltante" });
+
+  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+    if (err) return res.status(403).json({ error: "Sesión inválida o expirada" });
+    req.user = user;
+    next();
+  });
+}
+
+// Middleware to restrict access to admins
+function requireAdmin(req: any, res: any, next: any) {
+  if (req.user && req.user.role === "admin") {
+    next();
+  } else {
+    res.status(403).json({ error: "Acceso denegado: se requieren permisos de administrador" });
+  }
+}
 
 // Use higher limit for base64 image uploads
 app.use(express.json({ limit: "10mb" }));
@@ -216,8 +241,217 @@ Debes estructurar tu salida SIEMPRE con la siguiente jerarquía visual exacta (e
 Nota: Si no hay hallazgos para un sistema, escribe "Sin síntomas evidentes".]
 `;
 
+// --- AUTHENTICATION & DATABASE ROUTES ---
+
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email y contraseña son obligatorios" });
+    }
+    const users = await query("SELECT * FROM users WHERE email = ?", [email]);
+    const user = users[0];
+    if (!user || !verifyPassword(password, user.password_hash)) {
+      return res.status(401).json({ error: "Credenciales incorrectas" });
+    }
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+    res.json({
+      token,
+      user: { id: user.id, email: user.email, role: user.role },
+    });
+  } catch (error: any) {
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+// Patients endpoints
+app.get("/api/patients", authenticateToken, async (req: any, res) => {
+  try {
+    const userId = req.user.id;
+    const patients = await query("SELECT * FROM patients WHERE user_id = ? ORDER BY name ASC", [userId]);
+    res.json({ patients });
+  } catch (error: any) {
+    console.error("Error fetching patients:", error);
+    res.status(500).json({ error: "Error al obtener pacientes" });
+  }
+});
+
+app.post("/api/patients", authenticateToken, async (req: any, res) => {
+  try {
+    const { name, age, gender, notes } = req.body;
+    const userId = req.user.id;
+    if (!name) return res.status(400).json({ error: "El nombre es obligatorio" });
+    
+    await query(
+      "INSERT INTO patients (user_id, name, age, gender, notes) VALUES (?, ?, ?, ?, ?)",
+      [userId, name, age ? Number(age) : null, gender || "masculino", notes || ""]
+    );
+    const inserted = await query("SELECT * FROM patients WHERE user_id = ? ORDER BY id DESC LIMIT 1", [userId]);
+    res.json({ patient: inserted[0] });
+  } catch (error: any) {
+    console.error("Error creating patient:", error);
+    res.status(500).json({ error: "Error al crear paciente" });
+  }
+});
+
+// Reports endpoints
+app.get("/api/reports", authenticateToken, async (req: any, res) => {
+  try {
+    const userId = req.user.id;
+    const reports = await query(
+      `SELECT r.*, p.name as patient_name, p.age as patient_age, p.gender as patient_gender 
+       FROM reports r 
+       JOIN patients p ON r.patient_id = p.id 
+       WHERE r.user_id = ? 
+       ORDER BY r.id DESC`,
+      [userId]
+    );
+    res.json({ reports });
+  } catch (error: any) {
+    console.error("Error fetching reports:", error);
+    res.status(500).json({ error: "Error al obtener reportes" });
+  }
+});
+
+app.post("/api/reports", authenticateToken, async (req: any, res) => {
+  try {
+    const { patientId, type, date, evaluationJson, reportText } = req.body;
+    const userId = req.user.id;
+    if (!patientId || !reportText) {
+      return res.status(400).json({ error: "Paciente e informe son obligatorios" });
+    }
+    
+    // Verify patient belongs to user
+    const patients = await query("SELECT id FROM patients WHERE id = ? AND user_id = ?", [patientId, userId]);
+    if (patients.length === 0) {
+      return res.status(404).json({ error: "Paciente no encontrado" });
+    }
+
+    await query(
+      "INSERT INTO reports (patient_id, user_id, type, date, evaluation_json, report_text) VALUES (?, ?, ?, ?, ?, ?)",
+      [
+        patientId,
+        userId,
+        type || "photo",
+        date || new Date().toLocaleString("es-ES"),
+        evaluationJson ? JSON.stringify(evaluationJson) : null,
+        reportText
+      ]
+    );
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error("Error saving report:", error);
+    res.status(500).json({ error: "Error al guardar el reporte" });
+  }
+});
+
+app.delete("/api/reports/:id", authenticateToken, async (req: any, res) => {
+  try {
+    const reportId = req.params.id;
+    const userId = req.user.id;
+    
+    // Verify report belongs to user
+    const reports = await query("SELECT id FROM reports WHERE id = ? AND user_id = ?", [reportId, userId]);
+    if (reports.length === 0) {
+      return res.status(404).json({ error: "Reporte no encontrado" });
+    }
+    
+    await query("DELETE FROM reports WHERE id = ?", [reportId]);
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error("Delete report error:", error);
+    res.status(500).json({ error: "Error al eliminar el reporte" });
+  }
+});
+
+// User Administration endpoints
+app.get("/api/admin/users", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const users = await query("SELECT id, email, role, created_at FROM users ORDER BY email ASC");
+    res.json({ users });
+  } catch (error: any) {
+    console.error("Admin fetch users error:", error);
+    res.status(500).json({ error: "Error al obtener usuarios" });
+  }
+});
+
+app.post("/api/admin/users", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { email, password, role } = req.body;
+    if (!email || !password || !role) {
+      return res.status(400).json({ error: "Todos los campos son obligatorios" });
+    }
+    const existing = await query("SELECT id FROM users WHERE email = ?", [email]);
+    if (existing.length > 0) {
+      return res.status(400).json({ error: "El correo ya está registrado" });
+    }
+    const hashedPassword = hashPassword(password);
+    await query(
+      "INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)",
+      [email, hashedPassword, role]
+    );
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error("Admin create user error:", error);
+    res.status(500).json({ error: "Error al crear usuario" });
+  }
+});
+
+app.put("/api/admin/users/:id", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { email, password, role } = req.body;
+    if (!email || !role) {
+      return res.status(400).json({ error: "Email y rol son obligatorios" });
+    }
+
+    const existing = await query("SELECT id FROM users WHERE email = ? AND id != ?", [email, userId]);
+    if (existing.length > 0) {
+      return res.status(400).json({ error: "El correo ya está registrado por otro usuario" });
+    }
+
+    if (password) {
+      const hashedPassword = hashPassword(password);
+      await query(
+        "UPDATE users SET email = ?, password_hash = ?, role = ? WHERE id = ?",
+        [email, hashedPassword, role, userId]
+      );
+    } else {
+      await query(
+        "UPDATE users SET email = ?, role = ? WHERE id = ?",
+        [email, role, userId]
+      );
+    }
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error("Admin update user error:", error);
+    res.status(500).json({ error: "Error al actualizar usuario" });
+  }
+});
+
+app.delete("/api/admin/users/:id", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const userToDelete = await query("SELECT email FROM users WHERE id = ?", [userId]);
+    if (userToDelete.length > 0 && userToDelete[0].email === "mangoex@gmail.com") {
+      return res.status(400).json({ error: "No se puede eliminar al Super Administrador principal" });
+    }
+
+    await query("DELETE FROM users WHERE id = ?", [userId]);
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error("Admin delete user error:", error);
+    res.status(500).json({ error: "Error al eliminar usuario" });
+  }
+});
+
 // Endpoint for manual structured evaluation
-app.post("/api/analyze-manual", async (req, res) => {
+app.post("/api/analyze-manual", authenticateToken, async (req, res) => {
   try {
     const {
       patientName,
@@ -266,7 +500,7 @@ Por favor, procesa estos signos según el protocolo de lectura diagnóstica estr
 });
 
 // Endpoint for multimodal photo evaluation
-app.post("/api/analyze-photo", async (req, res) => {
+app.post("/api/analyze-photo", authenticateToken, async (req, res) => {
   try {
     const { imageBase64, mimeType, patientName, age, gender, additionalNotes } = req.body;
 
@@ -327,7 +561,7 @@ Recuerda: Usa terminología científica e iridológica pura de las escuelas Jose
 });
 
 // Endpoint for general clinical iridology Q&A chat
-app.post("/api/chat", async (req, res) => {
+app.post("/api/chat", authenticateToken, async (req, res) => {
   try {
     const { message, history } = req.body;
 
@@ -346,7 +580,7 @@ app.post("/api/chat", async (req, res) => {
 });
 
 // Endpoint for product recommendations
-app.post("/api/recommend-products", async (req, res) => {
+app.post("/api/recommend-products", authenticateToken, async (req, res) => {
   try {
     const { report } = req.body;
 
@@ -418,6 +652,14 @@ La propiedad "id" debe coincidir exactamente con el "id" del catálogo proporcio
 
 // Vite middleware setup or production static server
 async function startServer() {
+  try {
+    // Initialize SQLite/PostgreSQL tables and seed superadmin
+    await initDb();
+  } catch (dbErr) {
+    console.error("Critical error during Database Initialization:", dbErr);
+    process.exit(1);
+  }
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

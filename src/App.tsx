@@ -5,11 +5,14 @@ import {
   SavedReport,
   ChatMessage,
   CLINICAL_GLOSSARY,
+  Patient,
 } from "./types";
 import IrisMapExplorer from "./components/IrisMapExplorer";
 import { BodySystemsMap } from "./components/BodySystemsMap";
 import { ProductRecommendations } from "./components/ProductRecommendations";
 import ReportViewer from "./components/ReportViewer";
+import { LoginForm } from "./components/LoginForm";
+import AdminPanel from "./components/AdminPanel";
 import {
   Sparkles,
   ClipboardList,
@@ -33,12 +36,26 @@ import {
   HeartPulse,
   Award,
   ShoppingBag,
+  Shield,
+  LogOut,
 } from "lucide-react";
 
 // Helper to procedurally generate a high-quality clinical iris image for sandbox simulation
 export default function App() {
-  // Tab control: "manual" | "photo" | "explorer" | "chat" | "glossary" | "history"
+  // Tab control: "manual" | "photo" | "explorer" | "chat" | "glossary" | "history" | "admin"
   const [activeTab, setActiveTab] = useState<string>("photo");
+
+  // Auth & Session States
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem("iridology_token"));
+  const [currentUser, setCurrentUser] = useState<any | null>(() => {
+    const userStr = localStorage.getItem("iridology_user");
+    return userStr ? JSON.parse(userStr) : null;
+  });
+
+  // Patients State
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState<number | "">("");
+  const [isCreatingPatient, setIsCreatingPatient] = useState<boolean>(false);
 
   // Patient Info
   const [patient, setPatient] = useState<PatientData>({
@@ -191,22 +208,103 @@ export default function App() {
   // Glossary Search
   const [glossarySearch, setGlossarySearch] = useState<string>("");
 
-  // Load saved reports from localStorage
-  useEffect(() => {
-    const loaded = localStorage.getItem("iridology_reports");
-    if (loaded) {
-      try {
-        setSavedReports(JSON.parse(loaded));
-      } catch (e) {
-        console.error("Error loading saved reports:", e);
-      }
-    }
-  }, []);
+  // Auth Handlers
+  const handleLogin = (newToken: string, user: any) => {
+    setToken(newToken);
+    setCurrentUser(user);
+    localStorage.setItem("iridology_token", newToken);
+    localStorage.setItem("iridology_user", JSON.stringify(user));
+  };
 
-  // Save reports helper
-  const persistReports = (newReports: SavedReport[]) => {
-    setSavedReports(newReports);
-    localStorage.setItem("iridology_reports", JSON.stringify(newReports));
+  const handleLogout = () => {
+    setToken(null);
+    setCurrentUser(null);
+    localStorage.removeItem("iridology_token");
+    localStorage.removeItem("iridology_user");
+    setPatient({ name: "", age: "", gender: "masculino", notes: "" });
+    setSelectedPatientId("");
+    setReport(null);
+    setSavedReports([]);
+    setActiveTab("photo");
+  };
+
+  // DB Fetchers
+  const fetchPatients = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch("/api/patients", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPatients(data.patients || []);
+      }
+    } catch (err) {
+      console.error("Error fetching patients:", err);
+    }
+  };
+
+  const fetchReports = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch("/api/reports", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const mapped = (data.reports || []).map((r: any) => ({
+          id: String(r.id),
+          date: r.date,
+          patientName: r.patient_name,
+          age: String(r.patient_age || "No especificada"),
+          gender: r.patient_gender || "No especificado",
+          type: r.type,
+          evaluation: r.evaluation_json ? JSON.parse(r.evaluation_json) : undefined,
+          reportText: r.report_text
+        }));
+        setSavedReports(mapped);
+      }
+    } catch (err) {
+      console.error("Error fetching reports:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetchPatients();
+      fetchReports();
+    }
+  }, [token]);
+
+  // Create Patient Handler
+  const handleCreatePatient = async (name: string, age: string, gender: string, notes: string) => {
+    if (!name.trim()) return;
+    try {
+      const res = await fetch("/api/patients", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ name, age, gender, notes })
+      });
+      if (!res.ok) throw new Error("Error al guardar paciente");
+      const data = await res.json();
+      const newPatient = data.patient;
+      
+      setPatients(prev => [...prev, newPatient]);
+      setSelectedPatientId(newPatient.id);
+      setPatient({
+        name: newPatient.name,
+        age: String(newPatient.age || ""),
+        gender: newPatient.gender,
+        notes: newPatient.notes || ""
+      });
+      return newPatient;
+    } catch (err) {
+      console.error(err);
+      alert("No se pudo registrar el paciente.");
+    }
   };
 
   // Drag and drop handlers
@@ -284,6 +382,10 @@ export default function App() {
   // Submit manual evaluation
   const handleAnalyzeManual = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedPatientId) {
+      alert("Por favor seleccione un paciente antes de iniciar el análisis.");
+      return;
+    }
     setIsAnalyzing(true);
     setReport(null);
     setIsReportSaved(false);
@@ -292,7 +394,10 @@ export default function App() {
     try {
       const res = await fetch("/api/analyze-manual", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           patientName: patient.name,
           age: patient.age,
@@ -326,6 +431,10 @@ export default function App() {
   // Submit Photo analysis
   const handleAnalyzePhoto = async () => {
     if (!photoPreview) return;
+    if (!selectedPatientId) {
+      alert("Por favor seleccione un paciente antes de iniciar el análisis.");
+      return;
+    }
     setIsAnalyzing(true);
     setReport(null);
     setIsReportSaved(false);
@@ -334,7 +443,10 @@ export default function App() {
     try {
       const res = await fetch("/api/analyze-photo", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           imageBase64: photoPreview,
           mimeType: photoFile?.type || "image/jpeg",
@@ -369,39 +481,62 @@ export default function App() {
   };
 
   // Save report to clinical history
-  const handleSaveReport = () => {
-    if (!report) return;
+  const handleSaveReport = async () => {
+    if (!report || !selectedPatientId) {
+      alert("Por favor seleccione un paciente antes de guardar el informe.");
+      return;
+    }
 
-    const newReport: SavedReport = {
-      id: Math.random().toString(36).substr(2, 9),
-      date: new Date().toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      patientName: patient.name || "Anónimo",
-      age: patient.age || "No especificada",
-      gender: patient.gender || "No especificado",
-      type: activeTab === "manual" ? "manual" : "photo",
-      evaluation: activeTab === "manual" ? manualEvaluation : undefined,
-      reportText: report,
-    };
+    try {
+      const res = await fetch("/api/reports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          patientId: selectedPatientId,
+          type: activeTab === "manual" ? "manual" : "photo",
+          evaluationJson: activeTab === "manual" ? manualEvaluation : undefined,
+          reportText: report
+        })
+      });
 
-    const updated = [newReport, ...savedReports];
-    persistReports(updated);
-    setIsReportSaved(true);
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Error al guardar el reporte");
+      }
+
+      setIsReportSaved(true);
+      fetchReports(); // Refresh history list
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Error al guardar el reporte.");
+    }
   };
 
   // Delete saved report
-  const handleDeleteReport = (id: string, e: React.MouseEvent) => {
+  const handleDeleteReport = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("¿Está seguro de que desea eliminar este informe clínico del historial?")) {
-      const filtered = savedReports.filter((r) => r.id !== id);
-      persistReports(filtered);
-      if (selectedHistoricalReport?.id === id) {
-        setSelectedHistoricalReport(null);
+      try {
+        const res = await fetch(`/api/reports/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || "Error al eliminar el reporte");
+        }
+        fetchReports(); // Refresh history list
+        if (selectedHistoricalReport?.id === id) {
+          setSelectedHistoricalReport(null);
+        }
+      } catch (err: any) {
+        console.error(err);
+        alert(err.message || "Error al eliminar el reporte.");
       }
     }
   };
@@ -425,7 +560,10 @@ export default function App() {
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           message: userMsg.text,
           history: chatMessages.map((m) => ({ role: m.sender === "user" ? "user" : "model", text: m.text })),
@@ -479,6 +617,10 @@ export default function App() {
       item.description.toLowerCase().includes(glossarySearch.toLowerCase())
   );
 
+  if (!token || !currentUser) {
+    return <LoginForm onLogin={handleLogin} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
       {/* Clinically Designed Header */}
@@ -499,15 +641,21 @@ export default function App() {
             </div>
           </div>
 
-          {/* Quick Stats / System Badge */}
+          {/* User Profile & Logout */}
           <div className="flex items-center gap-4 text-xs font-mono">
-            <div className="bg-slate-950/80 px-3 py-1.5 rounded border border-slate-800 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-slate-400">Enlace Clínico Gemini Activo</span>
-            </div>
-            <div className="bg-slate-950/80 px-3 py-1.5 rounded border border-slate-800 text-slate-400 hidden sm:block">
-              Reglas: <span className="text-emerald-400">Escuelas Alemana & Jensen</span>
-            </div>
+            {currentUser && (
+              <div className="bg-slate-950/80 px-3 py-1.5 rounded border border-slate-800 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-slate-200">{currentUser.email}</span>
+              </div>
+            )}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 px-3 py-1.5 rounded border border-slate-700/50 transition-all cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Salir</span>
+            </button>
           </div>
         </div>
       </header>
@@ -519,45 +667,111 @@ export default function App() {
         <aside className="hidden lg:block w-64 flex-shrink-0" id="navigation-sidebar">
           <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4 space-y-4 sticky top-24">
             
-            {/* Patient File quick info snippet */}
+            {/* Patient File Selection and creation */}
             <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold font-mono uppercase tracking-wider">
-                <User className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Expediente Activo</span>
-              </div>
-              <div>
-                <input
-                  type="text"
-                  placeholder="Nombre del Paciente..."
-                  value={patient.name}
-                  onChange={(e) => setPatient({ ...patient, name: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600 font-medium"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="number"
-                  placeholder="Edad..."
-                  value={patient.age}
-                  onChange={(e) => setPatient({ ...patient, age: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600"
-                />
-                <select
-                  value={patient.gender}
-                  onChange={(e) => setPatient({ ...patient, gender: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-emerald-600"
+              <div className="flex items-center justify-between text-xs text-slate-400 font-semibold font-mono uppercase tracking-wider">
+                <div className="flex items-center gap-1.5 font-sans font-bold">
+                  <User className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Expediente Clínico</span>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsCreatingPatient(!isCreatingPatient);
+                    setSelectedPatientId("");
+                    setPatient({ name: "", age: "", gender: "masculino", notes: "" });
+                  }}
+                  className="text-[10px] text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer transition-colors"
                 >
-                  <option value="masculino">Masc.</option>
-                  <option value="femenino">Fem.</option>
-                  <option value="otro">Otro</option>
-                </select>
+                  {isCreatingPatient ? "Ver Lista" : "+ Nuevo"}
+                </button>
               </div>
-              <textarea
-                placeholder="Notas breves del historial clínico..."
-                value={patient.notes}
-                onChange={(e) => setPatient({ ...patient, notes: e.target.value })}
-                className="w-full h-12 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600 resize-none"
-              />
+
+              {!isCreatingPatient ? (
+                <div className="space-y-2">
+                  <select
+                    value={selectedPatientId}
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      setSelectedPatientId(id ? Number(id) : "");
+                      if (id) {
+                        const pat = patients.find(p => p.id === Number(id));
+                        if (pat) {
+                          setPatient({
+                            name: pat.name,
+                            age: String(pat.age || ""),
+                            gender: pat.gender,
+                            notes: pat.notes || ""
+                          });
+                        }
+                      } else {
+                        setPatient({ name: "", age: "", gender: "masculino", notes: "" });
+                      }
+                    }}
+                    className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-600 outline-none"
+                  >
+                    <option value="">-- Seleccionar Paciente --</option>
+                    {patients.map(p => (
+                      <option key={p.id} value={p.id}>{p.name} ({p.age} años)</option>
+                    ))}
+                  </select>
+                  {selectedPatientId && (
+                    <div className="bg-slate-900/50 p-2 rounded border border-slate-800/80 text-[10px] text-slate-400 font-mono space-y-0.5">
+                      <div><span className="text-slate-500">Género:</span> <span className="capitalize">{patient.gender}</span></div>
+                      {patient.notes && <div className="truncate"><span className="text-slate-500">Notas:</span> {patient.notes}</div>}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2 pt-1">
+                  <input
+                    type="text"
+                    placeholder="Nombre Completo..."
+                    value={patient.name}
+                    onChange={(e) => setPatient({ ...patient, name: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600 font-medium"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      placeholder="Edad..."
+                      value={patient.age}
+                      onChange={(e) => setPatient({ ...patient, age: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600"
+                    />
+                    <select
+                      value={patient.gender}
+                      onChange={(e) => setPatient({ ...patient, gender: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-emerald-600"
+                    >
+                      <option value="masculino">Masc.</option>
+                      <option value="femenino">Fem.</option>
+                      <option value="otro">Otro</option>
+                    </select>
+                  </div>
+                  <textarea
+                    placeholder="Notas de historial..."
+                    value={patient.notes}
+                    onChange={(e) => setPatient({ ...patient, notes: e.target.value })}
+                    className="w-full h-12 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600 resize-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!patient.name.trim()) {
+                        alert("El nombre es obligatorio");
+                        return;
+                      }
+                      const created = await handleCreatePatient(patient.name, patient.age, patient.gender, patient.notes);
+                      if (created) {
+                        setIsCreatingPatient(false);
+                      }
+                    }}
+                    className="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-1 px-2 rounded text-[11px] cursor-pointer transition-colors"
+                  >
+                    Guardar y Seleccionar
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Menu Links */}
@@ -717,6 +931,26 @@ export default function App() {
                   {savedReports.length}
                 </span>
               </button>
+
+              {currentUser && currentUser.role === "admin" && (
+                <button
+                  onClick={() => {
+                    setActiveTab("admin");
+                    setSelectedHistoricalReport(null);
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
+                    activeTab === "admin" && !selectedHistoricalReport
+                      ? "bg-emerald-950/50 text-emerald-400 border-l-2 border-emerald-500"
+                      : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Shield className="w-4 h-4" />
+                    <span>Administración</span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+                </button>
+              )}
             </div>
           </div>
         </aside>
@@ -726,46 +960,111 @@ export default function App() {
           
           {/* Patient Form on Mobile (Visible when taking photo) */}
           {activeTab === "photo" && !selectedHistoricalReport && (
-            <div className="block lg:hidden">
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold font-mono uppercase tracking-wider">
+            <div className="block lg:hidden bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between text-xs text-slate-400 font-semibold font-mono uppercase tracking-wider">
+                <div className="flex items-center gap-1.5 font-sans font-bold">
                   <User className="w-4 h-4 text-emerald-500" />
-                  <span>Expediente Activo</span>
+                  <span>Expediente Clínico</span>
                 </div>
-                <div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCreatingPatient(!isCreatingPatient);
+                    setSelectedPatientId("");
+                    setPatient({ name: "", age: "", gender: "masculino", notes: "" });
+                  }}
+                  className="text-[10px] text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer"
+                >
+                  {isCreatingPatient ? "Ver Lista" : "+ Nuevo"}
+                </button>
+              </div>
+
+              {!isCreatingPatient ? (
+                <div className="space-y-2">
+                  <select
+                    value={selectedPatientId}
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      setSelectedPatientId(id ? Number(id) : "");
+                      if (id) {
+                        const pat = patients.find(p => p.id === Number(id));
+                        if (pat) {
+                          setPatient({
+                            name: pat.name,
+                            age: String(pat.age || ""),
+                            gender: pat.gender,
+                            notes: pat.notes || ""
+                          });
+                        }
+                      } else {
+                        setPatient({ name: "", age: "", gender: "masculino", notes: "" });
+                      }
+                    }}
+                    className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-600 outline-none"
+                  >
+                    <option value="">-- Seleccionar Paciente --</option>
+                    {patients.map(p => (
+                      <option key={p.id} value={p.id}>{p.name} ({p.age} años)</option>
+                    ))}
+                  </select>
+                  {selectedPatientId && (
+                    <div className="bg-slate-900/50 p-2 rounded border border-slate-800/80 text-[10px] text-slate-400 font-mono space-y-0.5">
+                      <div><span className="text-slate-500">Género:</span> <span className="capitalize">{patient.gender}</span></div>
+                      {patient.notes && <div className="truncate"><span className="text-slate-500">Notas:</span> {patient.notes}</div>}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2 pt-1">
                   <input
                     type="text"
-                    placeholder="Nombre del Paciente..."
+                    placeholder="Nombre Completo..."
                     value={patient.name}
                     onChange={(e) => setPatient({ ...patient, name: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600 font-medium"
+                    className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600 font-medium"
                   />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    type="number"
-                    placeholder="Edad..."
-                    value={patient.age}
-                    onChange={(e) => setPatient({ ...patient, age: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600"
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      placeholder="Edad..."
+                      value={patient.age}
+                      onChange={(e) => setPatient({ ...patient, age: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600"
+                    />
+                    <select
+                      value={patient.gender}
+                      onChange={(e) => setPatient({ ...patient, gender: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-emerald-600"
+                    >
+                      <option value="masculino">Masc.</option>
+                      <option value="femenino">Fem.</option>
+                      <option value="otro">Otro</option>
+                    </select>
+                  </div>
+                  <textarea
+                    placeholder="Notas de historial..."
+                    value={patient.notes}
+                    onChange={(e) => setPatient({ ...patient, notes: e.target.value })}
+                    className="w-full h-12 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600 resize-none"
                   />
-                  <select
-                    value={patient.gender}
-                    onChange={(e) => setPatient({ ...patient, gender: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-emerald-600"
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!patient.name.trim()) {
+                        alert("El nombre es obligatorio");
+                        return;
+                      }
+                      const created = await handleCreatePatient(patient.name, patient.age, patient.gender, patient.notes);
+                      if (created) {
+                        setIsCreatingPatient(false);
+                      }
+                    }}
+                    className="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-1 px-2 rounded text-[11px] cursor-pointer transition-colors"
                   >
-                    <option value="masculino">Masc.</option>
-                    <option value="femenino">Fem.</option>
-                    <option value="otro">Otro</option>
-                  </select>
+                    Guardar y Seleccionar
+                  </button>
                 </div>
-                <textarea
-                  placeholder="Notas breves del historial clínico..."
-                  value={patient.notes}
-                  onChange={(e) => setPatient({ ...patient, notes: e.target.value })}
-                  className="w-full h-16 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600 resize-none"
-                />
-              </div>
+              )}
             </div>
           )}
 
@@ -1501,6 +1800,11 @@ export default function App() {
                     )}
                   </div>
                 </div>
+              )}
+
+              {/* G. ADMIN PANEL */}
+              {activeTab === "admin" && currentUser?.role === "admin" && (
+                <AdminPanel token={token!} />
               )}
 
             </>

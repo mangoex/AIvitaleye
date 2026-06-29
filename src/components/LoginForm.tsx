@@ -1,0 +1,148 @@
+import React, { useState } from "react";
+import { Lock, Mail, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { motion } from "framer-motion";
+
+interface LoginFormProps {
+  onLogin: (token: string, user: { id: number; email: string; role: "admin" | "user" }) => void;
+}
+
+export function LoginForm({ onLogin }: LoginFormProps) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !password.trim()) {
+      setError("Todos los campos son obligatorios");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Credenciales incorrectas");
+      }
+
+      const data = await response.json();
+      onLogin(data.token, data.user);
+    } catch (err: any) {
+      setError(err.message || "Error al conectar con el servidor");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background radial glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-950/20 via-slate-950/0 to-transparent pointer-events-none" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl shadow-2xl relative z-10"
+      >
+        {/* Title / Brand Header */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-emerald-950/80 border border-emerald-500/30 rounded-2xl flex items-center justify-center text-emerald-400 mx-auto mb-4 shadow-lg shadow-emerald-900/20">
+            <Lock className="w-7 h-7" />
+          </div>
+          <h2 className="text-2xl font-black text-white tracking-tight">Iridoclinic Suite</h2>
+          <p className="text-xs text-slate-400 mt-2">Inicie sesión para acceder al analizador clínico</p>
+        </div>
+
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-6 bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 flex gap-3 items-start"
+          >
+            <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
+            <span className="text-rose-300 text-xs font-medium leading-relaxed">{error}</span>
+          </motion.div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email input */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">Correo Electrónico</label>
+            <div className="relative">
+              <Mail className="absolute left-4 top-3.5 w-4 h-4 text-slate-500" />
+              <input
+                type="email"
+                placeholder="doctor@vitaleyes.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+                className="w-full bg-slate-950/80 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 text-slate-100 text-sm pl-11 pr-4 py-3 rounded-xl transition-all outline-none"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Password input */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">Contraseña</label>
+            <div className="relative">
+              <Lock className="absolute left-4 top-3.5 w-4 h-4 text-slate-500" />
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                className="w-full bg-slate-950/80 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 text-slate-100 text-sm pl-11 pr-12 py-3 rounded-xl transition-all outline-none"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading}
+                className="absolute right-4 top-3.5 text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Submit button */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-bold py-3.5 px-4 rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/10 border border-emerald-500/40 flex items-center justify-center gap-2 mt-6 cursor-pointer"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Autenticando...</span>
+              </>
+            ) : (
+              <span>Ingresar al Sistema</span>
+            )}
+          </button>
+        </form>
+
+        <div className="text-center mt-8 border-t border-slate-800/80 pt-6">
+          <p className="text-[10px] text-slate-500 font-mono">
+            Plataforma Profesional de Diagnóstico e Interpretación del Iris
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
