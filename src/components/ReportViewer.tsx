@@ -122,8 +122,8 @@ export default function ReportViewer({
 
   const handleWhatsApp = () => {
     const disclaimer = "\n\n---\n*Nota de Extensión de responsabilidad médica:* Este reporte es generado por inteligencia artificial con fines informativos y de apoyo nutricional. No sustituye un diagnóstico, tratamiento o consejo médico profesional. Consulte siempre a su médico antes de comenzar cualquier suplementación.";
-    const fullMessage = report + disclaimer;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(fullMessage)}`;
+    const fullMessage = reportText + disclaimer;
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullMessage)}`;
     window.open(whatsappUrl, '_blank');
   };
 
