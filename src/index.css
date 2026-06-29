@@ -26,30 +26,61 @@ html.light {
   --color-slate-500: #64748b; /* Very muted text/labels */
   --color-slate-600: #94a3b8; /* Placeholders */
   
-  /* Green / Emerald (Highlights & Accents) */
-  --color-emerald-950: #ecfdf5; /* Light green background */
-  --color-emerald-900: #d1fae5; /* Border green light */
-  --color-emerald-600: #059669; /* Active highlight */
-  --color-emerald-500: #047857; /* Emerald highlights */
-  --color-emerald-400: #065f46; /* Darker emerald for text contrast */
+  /* Green / Emerald (High contrast: Dark green for text, Light green for backgrounds) */
+  --color-emerald-50: #022c22;  /* Extremely dark green */
+  --color-emerald-100: #044e37; /* Dark green */
+  --color-emerald-200: #064e3b; /* Strong dark green text */
+  --color-emerald-300: #065f46; /* Strong green text */
+  --color-emerald-400: #047857; /* Strong green */
+  --color-emerald-500: #059669; /* Green highlight active */
+  --color-emerald-600: #10b981; /* Mid green */
+  --color-emerald-700: #34d399; /* Light green */
+  --color-emerald-800: #a7f3d0; /* Soft green badge */
+  --color-emerald-900: #d1fae5; /* Light green border/divider */
+  --color-emerald-950: #ecfdf5; /* Very light green background */
   
-  /* Gold / Amber (Luxurious accents) */
-  --color-amber-500: #b45309; /* Gold accent color */
-  --color-amber-400: #92400e; /* Darker gold for text contrast */
-  --color-amber-950: #fef3c7; /* Light gold background */
+  /* Amber / Gold / Brown (High contrast: Café/Marrón oscuro for text, Light cream for backgrounds) */
+  --color-amber-50: #451a03;  /* Extremely dark brown */
+  --color-amber-100: #78350f; /* Dark brown */
+  --color-amber-200: #92400e; /* Strong brown/café text */
+  --color-amber-300: #b45309; /* Strong golden brown text */
+  --color-amber-400: #d97706; /* Dark gold */
+  --color-amber-500: #f59e0b; /* Amber accent */
+  --color-amber-600: #fbbf24; /* Gold */
+  --color-amber-700: #fcd34d; /* Light gold */
+  --color-amber-800: #fef3c7; /* Soft gold badge */
+  --color-amber-900: #fffbeb; /* Light gold border/divider */
+  --color-amber-950: #fffdf5; /* Very light cream background */
   
-  /* Blue (Respiratorio Tab Highlights) */
-  --color-blue-950: #eff6ff; /* Light blue bg */
-  --color-blue-400: #1d4ed8; /* Darker blue text */
+  /* Blue (Respiratorio Tab Highlights - Dark blue text, Light blue backgrounds) */
+  --color-blue-50: #091d3e;
+  --color-blue-100: #0f2d59;
+  --color-blue-200: #172554; /* Strong dark blue text */
+  --color-blue-300: #1e3a8a; /* Dark blue text */
+  --color-blue-400: #1d4ed8; /* Strong blue text */
+  --color-blue-500: #2563eb; /* Active blue highlight */
+  --color-blue-900: #dbeafe; /* Light blue border */
+  --color-blue-950: #eff6ff; /* Light blue background */
   
-  /* Purple (Fisiología Tab Highlights) */
-  --color-purple-950: #faf5ff; /* Light purple bg */
-  --color-purple-400: #6d28d9; /* Darker purple text */
+  /* Purple (Fisiología Tab Highlights - Dark purple text, Light purple backgrounds) */
+  --color-purple-50: #1e0b36;
+  --color-purple-100: #301254;
+  --color-purple-200: #3b0764; /* Strong dark purple text */
+  --color-purple-300: #581c87; /* Dark purple text */
+  --color-purple-400: #6d28d9; /* Strong purple text */
+  --color-purple-500: #7c3aed; /* Active purple highlight */
+  --color-purple-900: #f3e8ff; /* Light purple border */
+  --color-purple-950: #faf5ff; /* Light purple background */
   
-  /* Rose (Error / Warning Highlights) */
-  --color-rose-950: #fff1f2; /* Light red bg */
-  --color-rose-500: #be123c; /* Darker red text */
-  --color-rose-400: #9f1239; /* Darker red text */
+  /* Rose (Error / Alerts - Dark red text, Light red backgrounds) */
+  --color-rose-50: #4c0519;
+  --color-rose-100: #6f0d22;
+  --color-rose-200: #881337; /* Strong dark red text */
+  --color-rose-300: #9f1239; /* Dark red text */
+  --color-rose-400: #be123c; /* Strong red text */
+  --color-rose-500: #e11d48; /* Active red highlight */
+  --color-rose-900: #ffe4e6; /* Light red border */
+  --color-rose-950: #fff1f2; /* Light red background */
   
   /* Custom shadow improvements for Light Mode */
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
