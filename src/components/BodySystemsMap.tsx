@@ -260,17 +260,23 @@ export function BodySystemsMap({ gender, report }: BodySystemsMapProps) {
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none" />
 
             <div className="relative z-10">
-              <div className="flex items-start justify-between mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-3 sm:gap-0">
                 <div>
                   <span className="text-xs font-semibold text-indigo-400 uppercase tracking-widest font-mono block mb-2">
                     Análisis de Sistema
                   </span>
-                  <h2 className="text-3xl font-bold text-slate-100 font-sans tracking-tight">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 font-sans tracking-tight mb-2 sm:mb-0">
                     {activeSystem.name}
                   </h2>
+                  {/* Mobile naked text below title */}
+                  <div className={`flex sm:hidden items-center gap-1.5 font-medium ${riskColors[activeSystem.riskLevel].split(' ')[0]}`}>
+                    {riskIcons[activeSystem.riskLevel]}
+                    <span className="text-sm">{riskLabels[activeSystem.riskLevel]}</span>
+                  </div>
                 </div>
                 
-                <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border ${riskColors[activeSystem.riskLevel]} font-medium`}>
+                {/* Desktop badge layout */}
+                <div className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl border ${riskColors[activeSystem.riskLevel]} font-medium`}>
                   {riskIcons[activeSystem.riskLevel]}
                   <span className="text-sm">{riskLabels[activeSystem.riskLevel]}</span>
                 </div>
