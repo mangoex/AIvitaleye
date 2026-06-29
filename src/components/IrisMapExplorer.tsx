@@ -15,14 +15,13 @@ export default function IrisMapExplorer({ report }: IrisMapExplorerProps) {
   const getRelevantFindings = (): string[] => {
     if (!report || !selectedSector.keywords) return [];
     
-    // Convertir el reporte en "oraciones" o párrafos pequeños para análisis contextual
-    const sentences = report
-      .replace(/\\n/g, " ")
-      .split(/(?<=[.!?])\\s+/)
-      .map(s => s.trim())
-      .filter(s => s.length > 10);
+    // Dividir el reporte por saltos de línea (párrafos/viñetas) y finales de oración
+    const chunks = report
+      .split(/(?:\\n|(?<=[.!?])\\s+)/)
+      .map(s => s.trim().replace(/^[-*]\\s*/, '')) // Limpiar caracteres de lista
+      .filter(s => s.length > 15);
       
-    const matches = sentences.filter(sentence => {
+    const matches = chunks.filter(sentence => {
       const lower = sentence.toLowerCase();
       // Si la oración menciona alguna de las palabras clave del sector seleccionado
       return selectedSector.keywords.some(kw => lower.includes(kw.toLowerCase()));
