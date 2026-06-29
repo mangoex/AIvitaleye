@@ -6,9 +6,7 @@ import {
   ChatMessage,
   CLINICAL_GLOSSARY,
 } from "./types";
-import { ManualEvaluationForm } from "./components/ManualEvaluationForm";
 import IrisMapExplorer from "./components/IrisMapExplorer";
-import { BodySystemsMap } from "./components/BodySystemsMap";
 import ReportViewer from "./components/ReportViewer";
 import {
   Sparkles,
@@ -35,6 +33,216 @@ import {
 } from "lucide-react";
 
 // Helper to procedurally generate a high-quality clinical iris image for sandbox simulation
+const generateProceduralIris = (type: number): string => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 600;
+  canvas.height = 600;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "";
+
+  // Introduce randomized parameters to make each simulated image unique
+  const cx = 300;
+  const cy = 300;
+  const outerR = 260;
+  const pupilR = 82 + Math.floor(Math.random() * 16); // Random pupil size (82 to 98)
+  const crownR = 142 + Math.floor(Math.random() * 16); // Random crown size (142 to 158)
+  
+  // Random oscillation parameters for the autonomic crown
+  const crownFreq1 = 5 + Math.floor(Math.random() * 4); // 5 to 8
+  const crownFreq2 = 2 + Math.floor(Math.random() * 3); // 2 to 4
+  const crownAmp1 = 6 + Math.random() * 6; // 6 to 12
+
+  // Background
+  ctx.fillStyle = "#090d16";
+  ctx.fillRect(0, 0, 600, 600);
+
+  // Determine colors based on constitutional type
+  let baseColor = "#1e3a8a"; // Default Linfático (Blue)
+  let fiberColors = ["#3b82f6", "#60a5fa", "#93c5fd", "#a5f3fc", "#ffffff"];
+  let crownColor = "#d97706";
+  let pigmentColors: string[] = [];
+  let ringColor = "rgba(255, 255, 255, 0.15)";
+  let hasSodiumRing = false;
+  let hasLymphRosary = false;
+
+  if (type === 0) {
+    // Linfático (Azul)
+    baseColor = "#1e3a8a";
+    fiberColors = ["#3b82f6", "#60a5fa", "#93c5fd", "#a5f3fc", "#ffffff"];
+    crownColor = "#eab308";
+    pigmentColors = ["#b45309", "#78350f"];
+    hasLymphRosary = true;
+  } else if (type === 1) {
+    // Hematógeno (Marrón)
+    baseColor = "#451a03";
+    fiberColors = ["#78350f", "#92400e", "#b45309", "#d97706", "#f59e0b", "#451a03"];
+    crownColor = "#292524";
+    pigmentColors = ["#1c1917", "#000000"];
+    hasSodiumRing = true;
+  } else {
+    // Mixto/Biliar (Verde-Marrón)
+    baseColor = "#14532d";
+    fiberColors = ["#15803d", "#166534", "#4ade80", "#ca8a04", "#854d0e", "#a16207"];
+    crownColor = "#ca8a04";
+    pigmentColors = ["#78350f", "#b45309", "#eab308"];
+    hasSodiumRing = true;
+    hasLymphRosary = true;
+  }
+
+  // Draw base background iris
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+  ctx.fillStyle = baseColor;
+  ctx.fill();
+
+  // Draw stroma fibers
+  const fiberCount = 450;
+  for (let i = 0; i < fiberCount; i++) {
+    const angle = (i / fiberCount) * Math.PI * 2 + (Math.random() * 0.05);
+    const lengthMult = 0.55 + Math.random() * 0.45;
+    
+    const startX = cx + Math.cos(angle) * (pupilR + 5);
+    const startY = cy + Math.sin(angle) * (pupilR + 5);
+    
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    
+    const midR = pupilR + (outerR - pupilR) * 0.5;
+    const midX = cx + Math.cos(angle + (Math.random() - 0.5) * 0.08) * midR;
+    const midY = cy + Math.sin(angle + (Math.random() - 0.5) * 0.08) * midR;
+    
+    const endR = pupilR + (outerR - pupilR) * lengthMult;
+    const endX = cx + Math.cos(angle + (Math.random() - 0.5) * 0.15) * endR;
+    const endY = cy + Math.sin(angle + (Math.random() - 0.5) * 0.15) * endR;
+    
+    ctx.quadraticCurveTo(midX, midY, endX, endY);
+    
+    ctx.strokeStyle = fiberColors[Math.floor(Math.random() * fiberColors.length)];
+    ctx.lineWidth = 0.6 + Math.random() * 1.2;
+    ctx.globalAlpha = 0.4 + Math.random() * 0.6;
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1.0;
+
+  // Draw autonomic crown
+  ctx.beginPath();
+  const crownPoints = 36;
+  for (let i = 0; i <= crownPoints; i++) {
+    const angle = (i / crownPoints) * Math.PI * 2;
+    const r = crownR + Math.sin(angle * crownFreq1) * crownAmp1 + (Math.sin(angle * crownFreq2) * 4);
+    const px = cx + Math.cos(angle) * r;
+    const py = cy + Math.sin(angle) * r;
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
+  ctx.strokeStyle = crownColor;
+  ctx.lineWidth = 3.5;
+  ctx.stroke();
+
+  // Draw contraction rings
+  ctx.strokeStyle = ringColor;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 8]);
+  for (let r = crownR + 30; r < outerR - 20; r += 25) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r + (Math.random() - 0.5) * 5, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Draw pigment spots
+  if (pigmentColors.length > 0) {
+    const spotCount = 6 + Math.floor(Math.random() * 8);
+    for (let i = 0; i < spotCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = crownR - 20 + Math.random() * (outerR - crownR + 10);
+      const px = cx + Math.cos(angle) * r;
+      const py = cy + Math.sin(angle) * r;
+      const size = 3 + Math.random() * 9;
+      
+      const grad = ctx.createRadialGradient(px, py, 1, px, py, size);
+      grad.addColorStop(0, pigmentColors[Math.floor(Math.random() * pigmentColors.length)]);
+      grad.addColorStop(1, "transparent");
+      
+      ctx.beginPath();
+      ctx.arc(px, py, size, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+  }
+
+  // Draw Rosario Linfático
+  if (hasLymphRosary) {
+    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+    const rosaryCount = 24;
+    for (let i = 0; i < rosaryCount; i++) {
+      const angle = (i / rosaryCount) * Math.PI * 2 + 0.1;
+      const r = outerR - 25;
+      const px = cx + Math.cos(angle) * r;
+      const py = cy + Math.sin(angle) * r;
+      ctx.beginPath();
+      ctx.arc(px, py, 5 + Math.random() * 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Draw Sodium Ring
+  if (hasSodiumRing) {
+    const grad = ctx.createRadialGradient(cx, cy, outerR - 18, cx, cy, outerR);
+    grad.addColorStop(0, "rgba(255, 255, 255, 0)");
+    grad.addColorStop(0.7, "rgba(255, 255, 255, 0.35)");
+    grad.addColorStop(1, "rgba(255, 255, 255, 0)");
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerR - 8, 0, Math.PI * 2);
+    ctx.lineWidth = 16;
+    ctx.strokeStyle = grad;
+    ctx.stroke();
+  }
+
+  // Draw pupil
+  ctx.beginPath();
+  ctx.arc(cx, cy, pupilR, 0, Math.PI * 2);
+  ctx.fillStyle = "#000000";
+  ctx.fill();
+
+  // Glare (randomized angle/distance to prove uniqueness in every capture)
+  const glareAngle = -Math.PI / 4 + (Math.random() - 0.5) * 0.4; // Around top-left quadrant
+  const glareDist = 35 + Math.random() * 10;
+  const glareX = cx + Math.cos(glareAngle) * glareDist;
+  const glareY = cy + Math.sin(glareAngle) * glareDist;
+
+  ctx.beginPath();
+  ctx.arc(glareX, glareY, 11 + Math.random() * 3, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.78)";
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(glareX - 15, glareY + 15, 3.5, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+  ctx.fill();
+
+  // Crosshair Boundary
+  ctx.strokeStyle = "rgba(16, 185, 129, 0.2)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx - pupilR - 40, cy);
+  ctx.lineTo(cx + pupilR + 40, cy);
+  ctx.moveTo(cx, cy - pupilR - 40);
+  ctx.lineTo(cx, cy + pupilR + 40);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  return canvas.toDataURL("image/jpeg", 0.95);
+};
+
 export default function App() {
   // Tab control: "manual" | "photo" | "explorer" | "chat" | "glossary" | "history"
   const [activeTab, setActiveTab] = useState<string>("manual");
@@ -64,12 +272,15 @@ export default function App() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
+  const [isCameraSimulated, setIsCameraSimulated] = useState<boolean>(false);
+  const [simulatedIrisType, setSimulatedIrisType] = useState<number>(0);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Start the webcam stream
   const handleStartCamera = async () => {
     setIsCameraActive(true);
+    setIsCameraSimulated(false);
     setErrorMsg(null);
     let stream: MediaStream | null = null;
 
@@ -88,9 +299,9 @@ export default function App() {
           audio: false,
         });
       } catch (fallbackErr: any) {
-        console.warn("No physical camera found:", fallbackErr);
-        setIsCameraActive(false);
-        alert("Permiso de cámara denegado o dispositivo no encontrado. Por favor, suba una foto usando el botón 'Seleccionar Archivo'.");
+        console.warn("No physical camera found, activating high-fidelity iridology simulator:", fallbackErr);
+        // Fallback: Activate clinical camera simulator instead of failing
+        setIsCameraSimulated(true);
         return;
       }
     }
@@ -116,6 +327,37 @@ export default function App() {
       setCameraStream(null);
     }
     setIsCameraActive(false);
+    setIsCameraSimulated(false);
+  };
+
+  // Capture procedural photo from the simulator
+  const handleCaptureSimulatedPhoto = () => {
+    const irisTypes = [
+      { name: "captura_simulador_linfatico.jpg", typeStr: "Iris Linfático (Azul)" },
+      { name: "captura_simulador_hematogeno.jpg", typeStr: "Iris Hematógeno (Marrón)" },
+      { name: "captura_simulador_biliar.jpg", typeStr: "Iris Mixto (Biliar)" },
+    ];
+    
+    const selected = irisTypes[simulatedIrisType] || irisTypes[0];
+    const dataUrl = generateProceduralIris(simulatedIrisType);
+    
+    if (dataUrl) {
+      setPhotoPreview(dataUrl);
+      try {
+        const byteString = atob(dataUrl.split(",")[1]);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+        const blob = new Blob([ab], { type: "image/jpeg" });
+        const file = new File([blob], `${selected.name}`, { type: "image/jpeg" });
+        setPhotoFile(file);
+      } catch (e) {
+        console.error("Error creating File from simulated data:", e);
+      }
+    }
+    handleStopCamera();
   };
 
   // Capture photo from the active webcam feed
@@ -240,35 +482,9 @@ export default function App() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setPhotoFile(file);
-      
       const reader = new FileReader();
       reader.onloadend = () => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          let width = img.width;
-          let height = img.height;
-          const maxDimension = 1024;
-          
-          if (width > height && width > maxDimension) {
-            height *= maxDimension / width;
-            width = maxDimension;
-          } else if (height > maxDimension) {
-            width *= maxDimension / height;
-            height = maxDimension;
-          }
-          
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            setPhotoPreview(canvas.toDataURL("image/jpeg", 0.85));
-          } else {
-            setPhotoPreview(reader.result as string); // fallback
-          }
-        };
-        img.src = reader.result as string;
+        setPhotoPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -350,14 +566,6 @@ export default function App() {
       }
 
       const data = await res.json();
-      
-      // Check for strict quality rejection from the AI
-      if (data.report && data.report.includes("ERROR_CALIDAD")) {
-        // Strip the error code string and throw a clean error
-        const cleanMessage = data.report.replace("ERROR_CALIDAD:", "").trim();
-        throw new Error(cleanMessage);
-      }
-
       setReport(data.report);
     } catch (err: any) {
       console.error(err);
@@ -615,24 +823,6 @@ export default function App() {
                 <div className="flex items-center gap-2.5">
                   <Map className="w-4 h-4" />
                   <span>Mapa de Zonas Clínico</span>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 opacity-60" />
-              </button>
-
-              <button
-                onClick={() => {
-                  setActiveTab("systems");
-                  setSelectedHistoricalReport(null);
-                }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
-                  activeTab === "systems" && !selectedHistoricalReport
-                    ? "bg-emerald-950/50 text-emerald-400 border-l-2 border-emerald-500"
-                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Activity className="w-4 h-4" />
-                  <span>Sistemas del Cuerpo</span>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 opacity-60" />
               </button>
@@ -1027,6 +1217,196 @@ export default function App() {
                         }`}
                       >
                         {isCameraActive ? (
+                          isCameraSimulated ? (
+                            <div className="w-full max-w-sm mx-auto space-y-4 text-center">
+                              <div className="text-amber-400 text-xs font-mono bg-amber-950/40 border border-amber-900/50 rounded-lg p-2 leading-relaxed">
+                                ℹ️ No se detectó cámara física. Activando simulador interactivo de macro-iris de alta resolución.
+                              </div>
+                              <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-950 aspect-video flex flex-col items-center justify-center p-2">
+                                <canvas
+                                  ref={(el) => {
+                                    if (el) {
+                                      const ctx = el.getContext("2d");
+                                      if (ctx) {
+                                        ctx.clearRect(0, 0, 300, 180);
+                                        const cx = 150;
+                                        const cy = 90;
+                                        const outerR = 75;
+                                        const pupilR = 25;
+                                        const crownR = 42;
+
+                                        // Background
+                                        ctx.fillStyle = "#030712";
+                                        ctx.fillRect(0, 0, 300, 180);
+
+                                        let baseColor = "#1e3a8a";
+                                        let fiberColors = ["#3b82f6", "#60a5fa", "#93c5fd", "#ffffff"];
+                                        let crownColor = "#d97706";
+                                        let hasSodiumRing = false;
+                                        let hasLymphRosary = false;
+
+                                        if (simulatedIrisType === 0) {
+                                          baseColor = "#172554";
+                                          fiberColors = ["#3b82f6", "#60a5fa", "#93c5fd", "#e0f2fe", "#ffffff"];
+                                          crownColor = "#eab308";
+                                          hasLymphRosary = true;
+                                        } else if (simulatedIrisType === 1) {
+                                          baseColor = "#451a03";
+                                          fiberColors = ["#78350f", "#92400e", "#b45309", "#f59e0b", "#451a03"];
+                                          crownColor = "#292524";
+                                          hasSodiumRing = true;
+                                        } else {
+                                          baseColor = "#064e3b";
+                                          fiberColors = ["#16a34a", "#4ade80", "#eab308", "#854d0e", "#a16207"];
+                                          crownColor = "#ca8a04";
+                                          hasSodiumRing = true;
+                                          hasLymphRosary = true;
+                                        }
+
+                                        // Draw iris
+                                        ctx.beginPath();
+                                        ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+                                        ctx.fillStyle = baseColor;
+                                        ctx.fill();
+
+                                        // Fibers
+                                        const fiberCount = 180;
+                                        for (let i = 0; i < fiberCount; i++) {
+                                          const angle = (i / fiberCount) * Math.PI * 2;
+                                          const lengthMult = 0.6 + Math.random() * 0.4;
+                                          const startX = cx + Math.cos(angle) * (pupilR + 2);
+                                          const startY = cy + Math.sin(angle) * (pupilR + 2);
+                                          const endX = cx + Math.cos(angle) * (pupilR + (outerR - pupilR) * lengthMult);
+                                          const endY = cy + Math.sin(angle) * (pupilR + (outerR - pupilR) * lengthMult);
+                                          ctx.beginPath();
+                                          ctx.moveTo(startX, startY);
+                                          ctx.lineTo(endX, endY);
+                                          ctx.strokeStyle = fiberColors[Math.floor(Math.random() * fiberColors.length)];
+                                          ctx.lineWidth = 0.5 + Math.random() * 0.8;
+                                          ctx.globalAlpha = 0.3 + Math.random() * 0.5;
+                                          ctx.stroke();
+                                        }
+                                        ctx.globalAlpha = 1.0;
+
+                                        // Corona
+                                        ctx.beginPath();
+                                        for (let i = 0; i <= 24; i++) {
+                                          const angle = (i / 24) * Math.PI * 2;
+                                          const r = crownR + Math.sin(angle * 6) * 3;
+                                          const px = cx + Math.cos(angle) * r;
+                                          const py = cy + Math.sin(angle) * r;
+                                          if (i === 0) ctx.moveTo(px, py);
+                                          else ctx.lineTo(px, py);
+                                        }
+                                        ctx.closePath();
+                                        ctx.strokeStyle = crownColor;
+                                        ctx.lineWidth = 1.5;
+                                        ctx.stroke();
+
+                                        // Sodium ring
+                                        if (hasSodiumRing) {
+                                          ctx.beginPath();
+                                          ctx.arc(cx, cy, outerR - 3, 0, Math.PI * 2);
+                                          ctx.lineWidth = 4;
+                                          ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+                                          ctx.stroke();
+                                        }
+
+                                        // Lymph rosary
+                                        if (hasLymphRosary) {
+                                          ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+                                          for (let i = 0; i < 16; i++) {
+                                            const angle = (i / 16) * Math.PI * 2;
+                                            const px = cx + Math.cos(angle) * (outerR - 8);
+                                            const py = cy + Math.sin(angle) * (outerR - 8);
+                                            ctx.beginPath();
+                                            ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+                                            ctx.fill();
+                                          }
+                                        }
+
+                                        // Pupil
+                                        ctx.beginPath();
+                                        ctx.arc(cx, cy, pupilR, 0, Math.PI * 2);
+                                        ctx.fillStyle = "#000000";
+                                        ctx.fill();
+
+                                        // Glares
+                                        ctx.beginPath();
+                                        ctx.arc(cx - 12, cy - 12, 4, 0, Math.PI * 2);
+                                        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+                                        ctx.fill();
+
+                                        // Target Overlay
+                                        ctx.strokeStyle = "rgba(16, 185, 129, 0.25)";
+                                        ctx.lineWidth = 0.5;
+                                        ctx.beginPath();
+                                        ctx.moveTo(cx - outerR - 10, cy);
+                                        ctx.lineTo(cx + outerR + 10, cy);
+                                        ctx.moveTo(cx, cy - outerR - 10);
+                                        ctx.lineTo(cx, cy + outerR + 10);
+                                        ctx.stroke();
+
+                                        ctx.beginPath();
+                                        ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+                                        ctx.stroke();
+                                      }
+                                    }
+                                  }}
+                                  width={300}
+                                  height={180}
+                                  className="rounded-lg shadow-inner max-w-full"
+                                />
+                                <div className="absolute top-2 left-2 bg-amber-950/80 border border-amber-800 text-[9px] text-amber-400 font-mono px-2 py-0.5 rounded flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                  Simulador de Cámara
+                                </div>
+                              </div>
+
+                              {/* Toggle constitutional type buttons */}
+                              <div className="space-y-1 text-left">
+                                <span className="text-[10px] text-slate-400 font-mono">Tipo de Iris a simular:</span>
+                                <div className="grid grid-cols-3 gap-1.5">
+                                  {[
+                                    { label: "Linfático (Azul)", border: "border-blue-900/60" },
+                                    { label: "Hematógeno (Marrón)", border: "border-amber-950/60" },
+                                    { label: "Mixto (Verde-Marrón)", border: "border-emerald-900/60" }
+                                  ].map((item, idx) => (
+                                    <button
+                                      key={idx}
+                                      type="button"
+                                      onClick={() => setSimulatedIrisType(idx)}
+                                      className={`text-[9px] py-1 border rounded-lg transition-all cursor-pointer font-semibold ${
+                                        simulatedIrisType === idx
+                                          ? "bg-emerald-950/40 border-emerald-500 text-emerald-400"
+                                          : "bg-slate-950/40 text-slate-400 " + item.border
+                                      }`}
+                                    >
+                                      {item.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center justify-center gap-3 pt-2">
+                                <button
+                                  type="button"
+                                  onClick={handleCaptureSimulatedPhoto}
+                                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-md cursor-pointer hover:scale-105 active:scale-95"
+                                >
+                                  <Camera className="w-4 h-4" />
+                                  Capturar Foto Simulada
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleStopCamera}
+                                  className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer"
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
                             <div className="w-full max-w-md mx-auto space-y-4 text-center">
                               <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-black aspect-video flex items-center justify-center">
                                 <video
@@ -1059,6 +1439,7 @@ export default function App() {
                                 </button>
                               </div>
                             </div>
+                          )
                         ) : photoPreview ? (
                           <div className="text-center space-y-4">
                             <div className="relative inline-block">
@@ -1151,49 +1532,18 @@ export default function App() {
               {/* C. INTERACTIVE ZONE MAP EXPLORER */}
               {activeTab === "explorer" && (
                 <div className="space-y-6">
-                  {/* UX Disclaimer for Users */}
-                  <div className="bg-amber-950/40 border border-amber-900/60 rounded-xl p-4 flex gap-3 items-start shadow-sm">
-                    <Info className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-bold text-amber-400 uppercase tracking-wide">Atención: Esta sección NO es el resultado de su análisis de foto.</p>
-                      <p className="text-xs text-amber-200/80 leading-relaxed font-sans">
-                        El "Mapa de Zonas Clínico" es únicamente una enciclopedia estática e interactiva. Los textos aquí mostrados son fijos y le enseñan qué órgano representa cada zona del ojo. 
-                        <strong> Los resultados verdaderos de la IA aparecerán directamente en la pestaña "Análisis Multimodal (Foto)" al procesar una imagen.</strong>
-                      </p>
-                    </div>
-                  </div>
-
                   <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
                     <div className="border-b border-slate-800 pb-4 mb-6">
                       <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
                         <Map className="w-5 h-5 text-emerald-400" />
-                        Mapa Iridológico Interactivo (Referencia Educativa)
+                        Mapa Iridológico Interactivo de Zonas Orgánicas
                       </h2>
                       <p className="text-xs text-slate-400 mt-1">
                         Explore los diferentes sectores del iris según los mapas clínicos clásicos. Haga clic en cada cuadrante para conocer qué sistemas orgánicos se proyectan en él y su interpretación diagnóstica de terreno.
                       </p>
                     </div>
 
-                    <IrisMapExplorer report={report} />
-                  </div>
-                </div>
-              )}
-
-              {/* C2. INTERACTIVE BODY SYSTEMS MAP */}
-              {activeTab === "systems" && (
-                <div className="space-y-6">
-                  <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
-                    <div className="border-b border-slate-800 pb-4 mb-6">
-                      <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-                        <Activity className="w-5 h-5 text-emerald-400" />
-                        Sistemas del Cuerpo
-                      </h2>
-                      <p className="text-xs text-slate-400 mt-1">
-                        Visualice los niveles de riesgo teórico por sistema corporal basándose en los hallazgos iridológicos generales de la constitución seleccionada.
-                      </p>
-                    </div>
-
-                    <BodySystemsMap gender={patient.gender} report={report} />
+                    <IrisMapExplorer />
                   </div>
                 </div>
               )}
