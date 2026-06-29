@@ -40,6 +40,7 @@ import {
   LogOut,
   Sun,
   Moon,
+  Eye,
 } from "lucide-react";
 
 // Helper to procedurally generate a high-quality clinical iris image for sandbox simulation
@@ -859,8 +860,8 @@ export default function App() {
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Camera className="w-4 h-4" />
-                  <span>Análisis Multimodal (Foto)</span>
+                  <Eye className="w-4 h-4" />
+                  <span>Subir Foto</span>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 opacity-60" />
               </button>
@@ -1437,8 +1438,8 @@ export default function App() {
                       {/* Title */}
                       <div className="border-b border-slate-800 pb-4">
                         <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-                          <Camera className="w-5 h-5 text-emerald-400" />
-                          Análisis Multimodal de Fotografía de Iris
+                          <Eye className="w-5 h-5 text-emerald-400" />
+                          Análisis de Fotografía de Iris
                         </h2>
                         <p className="text-xs text-slate-400 mt-1">
                           Cargue una fotografía macro de alta calidad del iris para que la IA efectúe un escaneo minucioso de su topografía estromal, fibras, pigmentaciones y coronas del sistema autónomo.
@@ -1513,17 +1514,12 @@ export default function App() {
                           </div>
                         ) : (
                           <div className="text-center space-y-4 py-4">
-                            <button
-                              type="button"
-                              onClick={handleStartCamera}
-                              title="Activar cámara"
-                              className="w-16 h-16 bg-slate-900 hover:bg-slate-850 hover:text-emerald-400 border border-slate-800 hover:border-emerald-500/50 rounded-full flex items-center justify-center text-slate-400 mx-auto transition-all cursor-pointer hover:scale-105 active:scale-95 shadow-lg"
-                            >
+                            <div className="w-16 h-16 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center text-slate-500 mx-auto shadow-lg">
                               <Camera className="w-7 h-7" />
-                            </button>
+                            </div>
                             <div className="space-y-1">
-                              <p className="text-sm font-semibold text-slate-200">Haga clic en la cámara para tomar una foto</p>
-                              <p className="text-xs text-slate-500">O arrastre su macrofotografía aquí</p>
+                              <p className="text-sm font-semibold text-slate-200">Cargue su macrofotografía del iris para iniciar</p>
+                              <p className="text-xs text-slate-500">Arrastre y suelte su archivo aquí</p>
                             </div>
                             <div className="pt-2">
                               <label className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all inline-block hover:scale-105 active:scale-95">
@@ -1877,8 +1873,8 @@ export default function App() {
             onClick={() => { setActiveTab("photo"); setSelectedHistoricalReport(null); }} 
             className={`flex flex-col items-center p-2 rounded-lg transition-colors w-16 ${activeTab === "photo" && !selectedHistoricalReport ? "text-emerald-400" : "text-slate-500 hover:text-slate-300"}`}
           >
-            <Camera className={`w-6 h-6 mb-1 ${activeTab === "photo" && !selectedHistoricalReport ? "fill-emerald-400/20" : ""}`} />
-            <span className="text-[10px] font-medium leading-none">Cámara</span>
+            <Eye className={`w-6 h-6 mb-1 ${activeTab === "photo" && !selectedHistoricalReport ? "fill-emerald-400/20" : ""}`} />
+            <span className="text-[10px] font-medium leading-none">Subir</span>
           </button>
           
           <button 
