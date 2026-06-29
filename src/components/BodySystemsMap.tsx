@@ -4,6 +4,7 @@ import { Activity, Info, AlertTriangle, ShieldCheck, Zap } from 'lucide-react';
 
 interface BodySystemsMapProps {
   gender: string;
+  report: string | null;
 }
 
 type RiskLevel = 'low' | 'medium' | 'high';
@@ -15,9 +16,10 @@ interface BodySystem {
   riskLevel: RiskLevel;
   commonIssues: string[];
   description: string;
+  keywords: string[];
 }
 
-// Mock Data
+// Mock Data (Default fallbacks)
 const BODY_SYSTEMS: BodySystem[] = [
   {
     id: 'nervous',
@@ -25,7 +27,8 @@ const BODY_SYSTEMS: BodySystem[] = [
     position: { top: '15%', left: '50%' }, // Head
     riskLevel: 'high',
     commonIssues: ['Estrés acumulado', 'Insomnio', 'Tensión muscular y dolores de cabeza', 'Ansiedad recurrente'],
-    description: 'Controla las respuestas al estrés y la relajación. Un nivel alto indica sobrecarga del sistema simpático.'
+    description: 'Controla las respuestas al estrés y la relajación. Un nivel alto indica sobrecarga del sistema simpático.',
+    keywords: ["nervioso", "estrés", "simpático", "parasimpático", "tensión", "corona", "cabeza", "cerebro", "ansiedad", "insomnio"]
   },
   {
     id: 'respiratory',
@@ -33,7 +36,8 @@ const BODY_SYSTEMS: BodySystem[] = [
     position: { top: '28%', left: '50%' }, // Chest
     riskLevel: 'low',
     commonIssues: ['Propensión a alergias', 'Congestión ocasional', 'Sensibilidad a cambios de clima'],
-    description: 'Encargado de la oxigenación celular y la eliminación primaria de toxinas gaseosas.'
+    description: 'Encargado de la oxigenación celular y la eliminación primaria de toxinas gaseosas.',
+    keywords: ["respiratorio", "pulmones", "pulmón", "bronquios", "torácica", "tórax", "alergia", "respiratoria"]
   },
   {
     id: 'cardiovascular',
@@ -41,7 +45,8 @@ const BODY_SYSTEMS: BodySystem[] = [
     position: { top: '34%', left: '58%' }, // Heart / Left chest
     riskLevel: 'medium',
     commonIssues: ['Mala circulación periférica', 'Retención de líquidos', 'Pesadez en piernas'],
-    description: 'Gestiona el flujo sanguíneo y el drenaje de desechos celulares.'
+    description: 'Gestiona el flujo sanguíneo y el drenaje de desechos celulares.',
+    keywords: ["cardiovascular", "corazón", "sangre", "circulación", "venosa", "linfático", "linfa", "vasos", "circulatorio"]
   },
   {
     id: 'digestive',
@@ -49,7 +54,8 @@ const BODY_SYSTEMS: BodySystem[] = [
     position: { top: '45%', left: '50%' }, // Abdomen Central
     riskLevel: 'high',
     commonIssues: ['Indigestión y acidez', 'Inflamación post-comidas', 'Tránsito lento', 'Gases'],
-    description: 'Absorbe nutrientes y procesa desechos. Es el núcleo de la resiliencia metabólica.'
+    description: 'Absorbe nutrientes y procesa desechos. Es el núcleo de la resiliencia metabólica.',
+    keywords: ["digestivo", "estómago", "intestinos", "intestinal", "colon", "digestión", "gastrointestinal"]
   },
   {
     id: 'elimination',
@@ -57,15 +63,62 @@ const BODY_SYSTEMS: BodySystem[] = [
     position: { top: '56%', left: '50%' }, // Abdomen Bajo / Pelvis
     riskLevel: 'medium',
     commonIssues: ['Sobrecarga de toxinas', 'Fatiga general', 'Problemas menores de piel', 'Cansancio vespertino'],
-    description: 'Riñones, hígado y piel. Responsables de limpiar la sangre y mantener el equilibrio químico.'
+    description: 'Riñones, hígado y piel. Responsables de limpiar la sangre y mantener el equilibrio químico.',
+    keywords: ["eliminación", "riñones", "riñón", "renal", "hígado", "hepático", "piel", "toxinas", "sudor", "urogenital"]
   }
 ];
 
-export function BodySystemsMap({ gender }: BodySystemsMapProps) {
+export function BodySystemsMap({ gender, report }: BodySystemsMapProps) {
   const [activeSystemId, setActiveSystemId] = useState<string>('digestive');
 
-  const activeSystem = BODY_SYSTEMS.find(s => s.id === activeSystemId) || BODY_SYSTEMS[0];
-  const isFemale = gender === 'Femenino';
+  const baseSystem = BODY_SYSTEMS.find(s => s.id === activeSystemId) || BODY_SYSTEMS[0];
+  const isFemale = gender === 'Femenino' || gender.toLowerCase() === 'femenino' || gender === 'Fem.';
+
+  // --- Motor Dinámico de Extracción de Hallazgos ---
+  let dynamicRisk: RiskLevel = baseSystem.riskLevel;
+  let dynamicIssues = [...baseSystem.commonIssues];
+
+  if (report) {
+    // 1. Chunking del reporte (reutilizando la heurística probada del mapa iridológico)
+    const chunks = report
+      .replace(/([.!?])\s+(?:[-*]\s+)?(?=[A-Z0-9#])/g, "$1\n")
+      .replace(/###.*?\n/g, "")
+      .split("\n")
+      .map(s => s.trim().replace(/^[-*]\s*/, ""))
+      .filter(s => s.length > 15);
+
+    // 2. Filtrado de chunks por palabras clave del sistema activo
+    const matches = chunks.filter(sentence => {
+      const lower = sentence.toLowerCase();
+      return baseSystem.keywords.some(kw => lower.includes(kw));
+    });
+
+    // 3. Lógica de Riesgo y Asignación de Hallazgos
+    if (matches.length === 0) {
+      dynamicRisk = 'low';
+      dynamicIssues = ['Sin hallazgos clínicos relevantes detectados por la IA en este sistema.'];
+    } else {
+      // Limpiar asteriscos y tomar máximo 4 oraciones
+      dynamicIssues = matches.map(m => m.replace(/[\*\*]/g, "")).slice(0, 4);
+      
+      const hasAlarmingKeywords = matches.some(m => {
+        const lower = m.toLowerCase();
+        return lower.includes('crónico') || lower.includes('grave') || lower.includes('agudo') || lower.includes('severo') || lower.includes('alto riesgo');
+      });
+
+      if (matches.length >= 3 || hasAlarmingKeywords) {
+        dynamicRisk = 'high';
+      } else {
+        dynamicRisk = 'medium';
+      }
+    }
+  }
+
+  const activeSystem = {
+    ...baseSystem,
+    riskLevel: dynamicRisk,
+    commonIssues: dynamicIssues
+  };
 
   const riskColors = {
     low: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',

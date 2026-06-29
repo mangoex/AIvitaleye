@@ -1193,7 +1193,7 @@ export default function App() {
                       </p>
                     </div>
 
-                    <BodySystemsMap gender={patient.gender} />
+                    <BodySystemsMap gender={patient.gender} report={report} />
                   </div>
                 </div>
               )}
