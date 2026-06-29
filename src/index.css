@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
 /* Base app defaults to dark mode styling */
-html {
+html, body {
   background-color: #020617;
   color: #f1f5f9;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overscroll-behavior-y: none;
+  min-height: 100dvh;
 }
 
 /* Redefine tailwind theme variables when HTML has the 'light' class */
-html.light {
+html.light, html.light body {
   background-color: #ffffff;
   color: #0f172a;
   
@@ -118,4 +120,9 @@ html.light .bg-slate-950\/40 {
 
 html.light .border-slate-800 {
   border-color: #e2e8f0 !important;
+}
+
+/* Safe area padding for mobile notches / home bars */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 8px) !important;
 }
