@@ -38,12 +38,29 @@ import {
   ShoppingBag,
   Shield,
   LogOut,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 // Helper to procedurally generate a high-quality clinical iris image for sandbox simulation
 export default function App() {
   // Tab control: "manual" | "photo" | "explorer" | "chat" | "glossary" | "history" | "admin"
   const [activeTab, setActiveTab] = useState<string>("photo");
+
+  // Theme State
+  const [theme, setTheme] = useState<"dark" | "light">(
+    () => (localStorage.getItem("iridology_theme") as "dark" | "light") || "dark"
+  );
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === "light") {
+      root.classList.add("light");
+    } else {
+      root.classList.remove("light");
+    }
+    localStorage.setItem("iridology_theme", theme);
+  }, [theme]);
 
   // Auth & Session States
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("iridology_token"));
@@ -647,13 +664,20 @@ export default function App() {
           </div>
 
           {/* User Profile & Logout */}
-          <div className="flex items-center gap-4 text-xs font-mono">
+          <div className="flex items-center gap-3 text-xs font-mono">
             {currentUser && (
               <div className="bg-slate-950/80 px-3 py-1.5 rounded border border-slate-800 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-slate-200">{currentUser.email}</span>
               </div>
             )}
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700/50 hover:text-amber-400 transition-colors cursor-pointer flex items-center justify-center"
+              title={theme === "dark" ? "Modo Claro" : "Modo Oscuro"}
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
             <button
               onClick={handleLogout}
               className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 px-3 py-1.5 rounded border border-slate-700/50 transition-all cursor-pointer"
@@ -1260,7 +1284,7 @@ export default function App() {
                               "Fibras Abiertas (Defecto de elasticidad de tejido)",
                               "Ulcera de Borde (Pérdida en SNA)",
                             ].map((sign) => (
-                              <label key={sign} className="flex items-start gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition-colors">
+                              <label key={sign} className="flex items-start gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-slate-100 transition-colors">
                                 <input
                                   type="checkbox"
                                   checked={manualEvaluation.structuralSigns.includes(sign)}
@@ -1287,7 +1311,7 @@ export default function App() {
                               "Ferrum (Manchas de hierro color óxido)",
                               "Porfirina (Área de choque pancreático/bazo)",
                             ].map((sign) => (
-                              <label key={sign} className="flex items-start gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition-colors">
+                              <label key={sign} className="flex items-start gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-slate-100 transition-colors">
                                 <input
                                   type="checkbox"
                                   checked={manualEvaluation.pigmentations.includes(sign)}

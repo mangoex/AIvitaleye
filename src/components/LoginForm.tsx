@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Lock, Mail, Loader2, AlertCircle, Eye, EyeOff, UserPlus, LogIn } from "lucide-react";
+import { Lock, Mail, Loader2, AlertCircle, Eye, EyeOff, UserPlus, LogIn, Sun, Moon } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface LoginFormProps {
@@ -7,6 +7,22 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onLogin }: LoginFormProps) {
+  const [theme, setTheme] = useState<"dark" | "light">(
+    () => (localStorage.getItem("iridology_theme") as "dark" | "light") || "dark"
+  );
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    const root = document.documentElement;
+    if (nextTheme === "light") {
+      root.classList.add("light");
+    } else {
+      root.classList.remove("light");
+    }
+    localStorage.setItem("iridology_theme", nextTheme);
+  };
+
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,6 +80,17 @@ export function LoginForm({ onLogin }: LoginFormProps) {
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Floating Theme Toggle */}
+      <div className="absolute top-4 right-4 z-50">
+        <button
+          onClick={toggleTheme}
+          className="p-2.5 bg-slate-900/80 border border-slate-800 text-slate-300 rounded-xl hover:text-amber-400 transition-colors cursor-pointer flex items-center justify-center shadow-lg backdrop-blur"
+          title={theme === "dark" ? "Modo Claro" : "Modo Oscuro"}
+        >
+          {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </button>
+      </div>
+
       {/* Background radial glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-950/20 via-slate-950/0 to-transparent pointer-events-none" />
 

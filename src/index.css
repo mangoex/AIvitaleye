@@ -1,1 +1,77 @@
 @import "tailwindcss";
+
+/* Base app defaults to dark mode styling */
+html {
+  background-color: #020617;
+  color: #f1f5f9;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Redefine tailwind theme variables when HTML has the 'light' class */
+html.light {
+  background-color: #ffffff;
+  color: #0f172a;
+  
+  /* Background overrides */
+  --color-slate-950: #ffffff; /* White base background */
+  --color-slate-900: #f8fafc; /* Very light gray/slate card background */
+  --color-slate-800: #e2e8f0; /* Light borders */
+  --color-slate-700: #cbd5e1; /* Borders and dividers */
+  
+  /* Text overrides */
+  --color-slate-100: #0f172a; /* Main text (very dark) */
+  --color-slate-200: #1e293b; /* Secondary text */
+  --color-slate-300: #334155; /* Secondary text */
+  --color-slate-400: #475569; /* Muted text */
+  --color-slate-500: #64748b; /* Very muted text/labels */
+  --color-slate-600: #94a3b8; /* Placeholders */
+  
+  /* Green / Emerald (Highlights & Accents) */
+  --color-emerald-950: #ecfdf5; /* Light green background */
+  --color-emerald-900: #d1fae5; /* Border green light */
+  --color-emerald-600: #059669; /* Active highlight */
+  --color-emerald-500: #047857; /* Emerald highlights */
+  --color-emerald-400: #065f46; /* Darker emerald for text contrast */
+  
+  /* Gold / Amber (Luxurious accents) */
+  --color-amber-500: #b45309; /* Gold accent color */
+  --color-amber-400: #92400e; /* Darker gold for text contrast */
+  --color-amber-950: #fef3c7; /* Light gold background */
+  
+  /* Blue (Respiratorio Tab Highlights) */
+  --color-blue-950: #eff6ff; /* Light blue bg */
+  --color-blue-400: #1d4ed8; /* Darker blue text */
+  
+  /* Purple (Fisiología Tab Highlights) */
+  --color-purple-950: #faf5ff; /* Light purple bg */
+  --color-purple-400: #6d28d9; /* Darker purple text */
+  
+  /* Rose (Error / Warning Highlights) */
+  --color-rose-950: #fff1f2; /* Light red bg */
+  --color-rose-500: #be123c; /* Darker red text */
+  --color-rose-400: #9f1239; /* Darker red text */
+  
+  /* Custom shadow improvements for Light Mode */
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+}
+
+/* Light mode specific element adjustments */
+html.light .bg-slate-900\/60 {
+  background-color: rgba(248, 250, 252, 0.8) !important;
+}
+
+html.light .bg-slate-900\/40 {
+  background-color: rgba(248, 250, 252, 0.6) !important;
+}
+
+html.light .bg-slate-950\/80 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+html.light .bg-slate-950\/40 {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+html.light .border-slate-800 {
+  border-color: #e2e8f0 !important;
+}
