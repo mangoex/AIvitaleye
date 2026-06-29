@@ -39,7 +39,7 @@ import {
 // Helper to procedurally generate a high-quality clinical iris image for sandbox simulation
 export default function App() {
   // Tab control: "manual" | "photo" | "explorer" | "chat" | "glossary" | "history"
-  const [activeTab, setActiveTab] = useState<string>("manual");
+  const [activeTab, setActiveTab] = useState<string>("photo");
 
   // Patient Info
   const [patient, setPatient] = useState<PatientData>({
@@ -514,10 +514,10 @@ export default function App() {
       </header>
 
       {/* Main Container Layout */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row gap-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row gap-6 pb-24 lg:pb-6">
         
         {/* Left Sidebar Menu (Clinical Navigation) */}
-        <aside className="w-full lg:w-64 flex-shrink-0" id="navigation-sidebar">
+        <aside className="hidden lg:block w-64 flex-shrink-0" id="navigation-sidebar">
           <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4 space-y-4 sticky top-24">
             
             {/* Patient File quick info snippet */}
@@ -572,7 +572,7 @@ export default function App() {
                   setActiveTab("manual");
                   setSelectedHistoricalReport(null);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
+                className={`hidden lg:flex w-full items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
                   activeTab === "manual" && !selectedHistoricalReport
                     ? "bg-emerald-950/50 text-emerald-400 border-l-2 border-emerald-500"
                     : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
@@ -590,7 +590,7 @@ export default function App() {
                   setActiveTab("photo");
                   setSelectedHistoricalReport(null);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
+                className={`hidden lg:flex w-full items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
                   activeTab === "photo" && !selectedHistoricalReport
                     ? "bg-emerald-950/50 text-emerald-400 border-l-2 border-emerald-500"
                     : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
@@ -725,6 +725,51 @@ export default function App() {
         {/* Center/Right Dynamic Panel Area */}
         <div className="flex-1 min-w-0 space-y-6" id="primary-dynamic-panel">
           
+          {/* Patient Form on Mobile (Visible when taking photo) */}
+          {activeTab === "photo" && !selectedHistoricalReport && (
+            <div className="block lg:hidden">
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold font-mono uppercase tracking-wider">
+                  <User className="w-4 h-4 text-emerald-500" />
+                  <span>Expediente Activo</span>
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Nombre del Paciente..."
+                    value={patient.name}
+                    onChange={(e) => setPatient({ ...patient, name: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600 font-medium"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="number"
+                    placeholder="Edad..."
+                    value={patient.age}
+                    onChange={(e) => setPatient({ ...patient, age: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600"
+                  />
+                  <select
+                    value={patient.gender}
+                    onChange={(e) => setPatient({ ...patient, gender: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-emerald-600"
+                  >
+                    <option value="masculino">Masc.</option>
+                    <option value="femenino">Fem.</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                </div>
+                <textarea
+                  placeholder="Notas breves del historial clínico..."
+                  value={patient.notes}
+                  onChange={(e) => setPatient({ ...patient, notes: e.target.value })}
+                  className="w-full h-16 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-600 resize-none"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Error Banner if any */}
           {errorMsg && (
             <div className="bg-rose-950/60 border border-rose-900/80 p-4 rounded-xl flex items-start gap-3 text-rose-200 text-sm">
@@ -1464,6 +1509,43 @@ export default function App() {
 
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 z-50 px-2 py-2 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+        <div className="flex justify-around items-center max-w-md mx-auto">
+          <button 
+            onClick={() => { setActiveTab("photo"); setSelectedHistoricalReport(null); }} 
+            className={`flex flex-col items-center p-2 rounded-lg transition-colors w-16 ${activeTab === "photo" && !selectedHistoricalReport ? "text-emerald-400" : "text-slate-500 hover:text-slate-300"}`}
+          >
+            <Camera className={`w-6 h-6 mb-1 ${activeTab === "photo" && !selectedHistoricalReport ? "fill-emerald-400/20" : ""}`} />
+            <span className="text-[10px] font-medium leading-none">Cámara</span>
+          </button>
+          
+          <button 
+            onClick={() => { setActiveTab("explorer"); setSelectedHistoricalReport(null); }} 
+            className={`flex flex-col items-center p-2 rounded-lg transition-colors w-16 ${activeTab === "explorer" && !selectedHistoricalReport ? "text-emerald-400" : "text-slate-500 hover:text-slate-300"}`}
+          >
+            <Map className={`w-6 h-6 mb-1 ${activeTab === "explorer" && !selectedHistoricalReport ? "fill-emerald-400/20" : ""}`} />
+            <span className="text-[10px] font-medium leading-none">Zonas</span>
+          </button>
+          
+          <button 
+            onClick={() => { setActiveTab("systems"); setSelectedHistoricalReport(null); }} 
+            className={`flex flex-col items-center p-2 rounded-lg transition-colors w-16 ${activeTab === "systems" && !selectedHistoricalReport ? "text-emerald-400" : "text-slate-500 hover:text-slate-300"}`}
+          >
+            <Activity className={`w-6 h-6 mb-1 ${activeTab === "systems" && !selectedHistoricalReport ? "fill-emerald-400/20" : ""}`} />
+            <span className="text-[10px] font-medium leading-none">Sistemas</span>
+          </button>
+          
+          <button 
+            onClick={() => { setActiveTab("recommendations"); setSelectedHistoricalReport(null); }} 
+            className={`flex flex-col items-center p-2 rounded-lg transition-colors w-16 ${activeTab === "recommendations" && !selectedHistoricalReport ? "text-emerald-400" : "text-slate-500 hover:text-slate-300"}`}
+          >
+            <ShoppingBag className={`w-6 h-6 mb-1 ${activeTab === "recommendations" && !selectedHistoricalReport ? "fill-emerald-400/20" : ""}`} />
+            <span className="text-[10px] font-medium leading-none">Recetas</span>
+          </button>
+        </div>
+      </div>
 
       {/* Clinical footer branding */}
       <footer className="bg-slate-950 border-t border-slate-900 py-6 text-center text-xs text-slate-500 font-mono mt-12">
