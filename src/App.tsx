@@ -301,6 +301,10 @@ export default function App() {
         gender: newPatient.gender,
         notes: newPatient.notes || ""
       });
+      setReport(null);
+      setIsReportSaved(false);
+      setPhotoPreview(null);
+      setPhotoFile(null);
       return newPatient;
     } catch (err) {
       console.error(err);
@@ -680,6 +684,10 @@ export default function App() {
                     setIsCreatingPatient(!isCreatingPatient);
                     setSelectedPatientId("");
                     setPatient({ name: "", age: "", gender: "masculino", notes: "" });
+                    setReport(null);
+                    setIsReportSaved(false);
+                    setPhotoPreview(null);
+                    setPhotoFile(null);
                   }}
                   className="text-[10px] text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer transition-colors"
                 >
@@ -989,6 +997,10 @@ export default function App() {
                     setIsCreatingPatient(!isCreatingPatient);
                     setSelectedPatientId("");
                     setPatient({ name: "", age: "", gender: "masculino", notes: "" });
+                    setReport(null);
+                    setIsReportSaved(false);
+                    setPhotoPreview(null);
+                    setPhotoFile(null);
                   }}
                   className="text-[10px] text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer"
                 >
