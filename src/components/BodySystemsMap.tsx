@@ -305,7 +305,11 @@ export function BodySystemsMap({ gender, report }: BodySystemsMapProps) {
               <div className="hidden lg:flex mt-8 items-center gap-3 bg-indigo-950/20 border border-indigo-900/30 p-4 rounded-xl">
                 <Info className="w-5 h-5 text-indigo-400 shrink-0" />
                 <p className="text-xs text-indigo-200/70 font-sans leading-relaxed">
-                  Estos niveles de riesgo son una evaluación teórica basada en la topografía iridológica. Para una actualización dinámica, es necesario procesar una fotografía real del iris en la pestaña de Análisis Multimodal.
+                  {report ? (
+                    "Estos niveles de riesgo y tendencias se han analizado dinámicamente a partir del reporte clínico activo."
+                  ) : (
+                    "Estos niveles de riesgo son una evaluación teórica de referencia. Para una actualización dinámica, es necesario subir una fotografía del iris en la pestaña de Subir Foto."
+                  )}
                 </p>
               </div>
             </div>
