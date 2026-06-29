@@ -482,9 +482,35 @@ export default function App() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setPhotoFile(file);
+      
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          const maxDimension = 1024;
+          
+          if (width > height && width > maxDimension) {
+            height *= maxDimension / width;
+            width = maxDimension;
+          } else if (height > maxDimension) {
+            width *= maxDimension / height;
+            height = maxDimension;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            setPhotoPreview(canvas.toDataURL("image/jpeg", 0.85));
+          } else {
+            setPhotoPreview(reader.result as string); // fallback
+          }
+        };
+        img.src = reader.result as string;
       };
       reader.readAsDataURL(file);
     }

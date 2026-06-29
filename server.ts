@@ -68,7 +68,7 @@ async function callAIService({
 
     // Add the current message (optionally multimodal)
     if (image) {
-      const cleanBase64 = image.base64.replace(/^data:image\/\w+;base64,/, "");
+      const cleanBase64 = image.base64.includes(",") ? image.base64.split(",")[1] : image.base64;
       messages.push({
         role: "user",
         content: [
