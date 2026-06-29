@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Clipboard, Printer, Download, Sparkles, BookOpen, HeartPulse, Activity } from "lucide-react";
+import { Clipboard, Printer, Download, Sparkles, BookOpen, HeartPulse, Activity, MessageCircle } from "lucide-react";
 
 interface ReportViewerProps {
   reportText: string;
@@ -120,6 +120,13 @@ export default function ReportViewer({
     });
   };
 
+  const handleWhatsApp = () => {
+    const disclaimer = "\n\n---\n*Nota de Extensión de responsabilidad médica:* Este reporte es generado por inteligencia artificial con fines informativos y de apoyo nutricional. No sustituye un diagnóstico, tratamiento o consejo médico profesional. Consulte siempre a su médico antes de comenzar cualquier suplementación.";
+    const fullMessage = report + disclaimer;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(fullMessage)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   return (
     <div className="space-y-6" id="report-viewer">
       {/* Top action bar */}
@@ -136,6 +143,14 @@ export default function ReportViewer({
           >
             <Clipboard className="w-3.5 h-3.5" />
             <span>Copiar</span>
+          </button>
+          <button
+            onClick={handleWhatsApp}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg text-xs font-medium transition-colors border border-green-500"
+            title="Enviar por WhatsApp"
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            <span>WhatsApp</span>
           </button>
           <button
             onClick={handleDownload}
