@@ -17,7 +17,7 @@ export default function IrisMapExplorer({ report }: IrisMapExplorerProps) {
     
     // Convertir el reporte en oraciones usando lookaheads (compatible con todos los navegadores)
     const chunks = report
-      .replace(/([.!?])\\s+(?=[A-Z0-9#])/g, "$1\\n") // Inyectar saltos de línea tras cada punto
+      .replace(/([.!?])\\s+(?:[-*]\\s+)?(?=[A-Z0-9#])/g, "$1\\n") // Inyectar saltos de línea tras cada punto (incluso si hay viñetas pegadas)
       .replace(/###.*?\\n/g, "") // Limpiar títulos markdown
       .split("\\n")
       .map(s => s.trim().replace(/^[-*]\\s*/, "")) // Limpiar viñetas
