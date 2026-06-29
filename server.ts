@@ -68,7 +68,7 @@ async function callAIService({
 
     // Add the current message (optionally multimodal)
     if (image) {
-      const cleanBase64 = image.base64.replace(/^data:image\/\w+;base64,/, "");
+      const cleanBase64 = image.base64.includes(",") ? image.base64.split(",")[1] : image.base64;
       messages.push({
         role: "user",
         content: [
@@ -275,10 +275,12 @@ CRÍTICO: No des un diagnóstico de plantilla genérico. Para demostrar que est�
 
 Sigue estas estrictas directrices en cada sección:
 
-1. EVIDENCIA VISUAL DIRECTA (Grounded analysis):
-   - Describe las características visuales reales de la imagen: la resolución de la foto, la tonalidad exacta del iris (ej. "azul grisáceo", "marrón profundo", "verde oliva con sobrecarga dorada"), y la nitidez de las trabéculas.
-   - Describe detalladamente la presencia y ubicación de destellos de luz de la cámara (glare/reflejos) o sombras sobre el iris que limiten la visibilidad de ciertas zonas (ej. "reflejo blanco de captura en el cuadrante supero-izquierdo a las 10:30"). Esto demuestra que realmente estás "viendo" la fotografía real de este paciente.
-   - Si la foto es borrosa o de baja iluminación, indícalo de forma profesional y explica qué sectores del iridograma no se pueden valorar con precisión por este motivo.
+1. EVIDENCIA VISUAL DIRECTA (Grounded analysis) Y CONTROL DE CALIDAD:
+   - REGLA DE ORO: Si la imagen suministrada NO es la de un ojo humano, o si es extremadamente borrosa, desenfocada, o la iluminación impide ver claramente el estroma del iris, DEBES RECHAZAR LA IMAGEN INMEDIATAMENTE.
+   - En caso de rechazo, tu única respuesta debe ser exactamente el siguiente texto (sin Markdown adicional):
+     "ERROR_CALIDAD: La imagen proporcionada no tiene la calidad suficiente o no es un iris válido para un estudio iridológico. Por favor, asegúrese de tomar una fotografía macro enfocada, bien iluminada y centrada en el ojo, y vuelva a intentarlo."
+   - Si la imagen SÍ es válida, describe sus características visuales reales: la tonalidad exacta (ej. "azul grisáceo", "marrón profundo con pigmentos ámbar"), y la nitidez de las trabéculas. Menciona al menos 2 detalles visuales únicos de ESTA foto para probar que la analizaste.
+   - Describe destellos de luz de la cámara (glare/reflejos) o sombras sobre el iris (ej. "reflejo blanco en el cuadrante supero-izquierdo a las 10:30").
 
 2. PROTOCOLO DE EVALUACIÓN SECTORIAL Y SIGNOS ESPECÍFICOS:
    - Identifica la constitución biológica (Linfática, Hematógena, o Mixta/Biliar) justificando con lo que observas (ej. "fibras radiales blancas onduladas bien delineadas" o "estroma aterciopelado homogéneo pigmentado").

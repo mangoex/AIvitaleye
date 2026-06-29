@@ -1,11 +1,38 @@
 import React, { useState } from "react";
 import { IRIDOLOGY_SECTORS, MapSector } from "../types";
-import { Eye, Info, Layers, BookOpen } from "lucide-react";
+import { Eye, Info, Layers, BookOpen, BrainCircuit } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
-export default function IrisMapExplorer() {
+interface IrisMapExplorerProps {
+  report?: string | null;
+}
+
+export default function IrisMapExplorer({ report }: IrisMapExplorerProps) {
   const [selectedSector, setSelectedSector] = useState<MapSector>(IRIDOLOGY_SECTORS[4]); // default to gastrointestinal (center)
   const [hoveredSectorId, setHoveredSectorId] = useState<string | null>(null);
+
+  // Lógica heurística para extraer hallazgos relevantes basados en palabras clave
+  const getRelevantFindings = (): string[] => {
+    if (!report || !selectedSector.keywords) return [];
+    
+    // Convertir el reporte en oraciones usando lookaheads (compatible con todos los navegadores)
+    const chunks = report
+      .replace(/([.!?])\s+(?:[-*]\s+)?(?=[A-Z0-9#])/g, "$1\n") // Inyectar saltos de línea tras cada punto (incluso si hay viñetas pegadas)
+      .replace(/###.*?\n/g, "") // Limpiar títulos markdown
+      .split("\n")
+      .map(s => s.trim().replace(/^[-*]\s*/, "")) // Limpiar viñetas
+      .filter(s => s.length > 15);
+      
+    const matches = chunks.filter(sentence => {
+      const lower = sentence.toLowerCase();
+      // Si la oración menciona alguna de las palabras clave del sector seleccionado
+      return selectedSector.keywords.some(kw => lower.includes(kw.toLowerCase()));
+    });
+    
+    return matches.slice(0, 4); // Limitar a un máximo de 4 oraciones clave para no saturar UI
+  };
+
+  const dynamicFindings = getRelevantFindings();
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-slate-900/50 p-6 rounded-2xl border border-slate-800 backdrop-blur-sm" id="map-explorer-container">
@@ -268,12 +295,45 @@ export default function IrisMapExplorer() {
             <div className="bg-emerald-950/25 p-4 rounded-lg border border-emerald-900/40">
               <h4 className="text-xs font-mono font-bold text-emerald-400 flex items-center gap-1.5 mb-1.5">
                 <Info className="w-3.5 h-3.5" />
-                Significación Clínica y Signos Comunes:
+                Significación Clínica General (Referencia):
               </h4>
               <p className="text-sm text-emerald-200/90 leading-relaxed font-sans">
                 {selectedSector.clinicalSignificance}
               </p>
             </div>
+
+            {/* Dynamic AI Findings (Only visible if a report exists and matches the sector) */}
+            {report && dynamicFindings.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-indigo-950/40 p-4 rounded-lg border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.1)] relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full" />
+                <h4 className="text-xs font-mono font-bold text-indigo-400 flex items-center gap-1.5 mb-2 relative z-10">
+                  <BrainCircuit className="w-4 h-4" />
+                  Hallazgos de la IA para esta Zona:
+                </h4>
+                <ul className="space-y-2 relative z-10">
+                  {dynamicFindings.map((finding, idx) => (
+                    <li key={idx} className="text-sm text-indigo-100/90 leading-relaxed font-sans flex items-start gap-2">
+                      <span className="text-indigo-500 mt-0.5">•</span>
+                      <span>{finding.replace(/[\\*\\*]/g, "")}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            )}
+
+            {/* If there's a report but no findings for this sector */}
+            {report && dynamicFindings.length === 0 && (
+              <div className="bg-slate-900/40 p-3 rounded-lg border border-slate-800/50 flex gap-2 items-center">
+                <Info className="w-4 h-4 text-slate-500" />
+                <span className="text-xs text-slate-400 font-sans">
+                  La IA no destacó hallazgos específicos de atención prioritaria para la zona {selectedSector.name.split(" ")[1]} en este escaneo.
+                </span>
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
 
