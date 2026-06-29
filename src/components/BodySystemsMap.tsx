@@ -101,8 +101,14 @@ export function BodySystemsMap({ gender, report }: BodySystemsMapProps) {
           dynamicRisk = 'low';
           dynamicIssues = ['Sin síntomas evidentes detectados por la IA en este sistema.'];
         } else {
-          // Separar por comas
-          dynamicIssues = rawSymptoms.split(',').map(s => s.trim().replace(/\.$/, '')).filter(s => s.length > 0);
+          // Separar por comas, limpiar asteriscos y capitalizar
+          dynamicIssues = rawSymptoms.split(',').map(s => {
+            let cleanStr = s.replace(/[\*]/g, '').trim().replace(/\.$/, '');
+            if (cleanStr.length > 0) {
+              cleanStr = cleanStr.charAt(0).toUpperCase() + cleanStr.slice(1);
+            }
+            return cleanStr;
+          }).filter(s => s.length > 0);
           
           // Evaluar riesgo basado en palabras clave o cantidad de síntomas
           const hasAlarmingKeywords = dynamicIssues.some(m => {
