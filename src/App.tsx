@@ -1154,7 +1154,7 @@ export default function App() {
                       </p>
                     </div>
 
-                    <IrisMapExplorer />
+                    <IrisMapExplorer report={report} />
                   </div>
                 </div>
               )}
