@@ -1,0 +1,205 @@
+[
+  {
+    "id": "v-organex",
+    "name": "V-ORGANEX",
+    "price": 850,
+    "benefits": ["Desintoxica el hígado", "Revitaliza tu cuerpo", "Limpia vías biliares", "Apoya control de alergias", "Previene padecimientos en hígado"],
+    "ingredients": ["Boldo", "Cardo mariano", "Casia amara", "Hierba del Sapo", "Guaraná", "Achicoria", "Alcachofa"]
+  },
+  {
+    "id": "te-detox",
+    "name": "TE DETOX",
+    "price": 600,
+    "benefits": ["Favorece pérdida de peso", "Piel saludable", "Desinflamación abdominal", "Elimina toxinas", "Provee más energía"],
+    "ingredients": ["Hoja de Caqui", "Hoja de Malva", "Nopal", "Jengibre", "Cardo bendito", "Manzanilla", "Hoja de malvavisco"]
+  },
+  {
+    "id": "v-glucalose",
+    "name": "V-GLUCALOSE",
+    "price": 950,
+    "benefits": ["Regulación de azúcar en sangre", "Ayuda con trastornos hormonales", "Bienestar metabólico", "Sensibilidad a la insulina"],
+    "ingredients": ["Nopal", "Chaya", "Ajo", "Uva ursi", "Linaza", "Cardo Mariano", "Berberina", "Betacaroteno", "Fenogreco"]
+  },
+  {
+    "id": "v-itaren",
+    "name": "V-ITAREN",
+    "price": 800,
+    "benefits": ["Equilibrio hídrico del cuerpo", "Mejor circulación", "Desinflama de forma natural", "Bienestar renal", "Desintoxica riñones"],
+    "ingredients": ["Jamaica", "Cola de Caballo", "Diente de León", "Hierba del Sapo", "Moringa", "Uva ursi"]
+  },
+  {
+    "id": "vitarly-l",
+    "name": "VITARLY-L",
+    "price": 900,
+    "benefits": ["Buena circulación", "Incrementa niveles de energía", "Flujo sanguíneo arterial", "Rendimiento físico y mental", "Salud sexual"],
+    "ingredients": ["L-arginina", "Cafeína", "Magnesio", "Té Verde", "Zinc", "Vitamina B3", "Coenzima Q10", "Cromo"]
+  },
+  {
+    "id": "v-itadol",
+    "name": "V-ITADOL",
+    "price": 750,
+    "benefits": ["Aliviar lesiones y artritis", "Disminuir inflamación articular", "Dolores agudos y crónicos"],
+    "ingredients": ["Glucosamina", "MSM", "Zarzaparrilla"]
+  },
+  {
+    "id": "v-glutation",
+    "name": "V-GLUTATION",
+    "price": 1200,
+    "benefits": ["Nutre, protege y regenera a nivel celular", "Antienvejecimiento", "Previene enfermedades", "Expulsa radicales libres y metales"],
+    "ingredients": ["Glutatión (GSH)", "Vitamina C", "Extracto de Raíz de Cúrcuma", "Rosa de Castilla"]
+  },
+  {
+    "id": "v-fortyflora",
+    "name": "V-FORTYFLORA",
+    "price": 780,
+    "benefits": ["Reparación de tejidos", "Reducir distensión abdominal", "Equilibrar microbiota intestinal"],
+    "ingredients": ["Carbón vegetal", "Sulfato de Magnesio", "L-lisina", "Carbonato de Calcio", "Dióxido de Silicio"]
+  },
+  {
+    "id": "v-asculax",
+    "name": "V-ASCULAX",
+    "price": 850,
+    "benefits": ["Mejora flujo sanguíneo", "Reducir inflamación", "Salud del corazón", "Antioxidante", "Elasticidad cardiovascular"],
+    "ingredients": ["Alcachofa", "Romero", "MSM", "Cola de Caballo", "Hamamelis", "Ruda"]
+  },
+  {
+    "id": "v-omega-3",
+    "name": "V-OMEGA 3",
+    "price": 650,
+    "benefits": ["Prevenir infartos", "Capacidad cognitiva", "Antiinflamatorio", "Fortalece neuronas", "Nivela colesterol"],
+    "ingredients": ["Aceite de Salmón Salvaje", "Aceite de annato", "Delta-Tocotrienoles", "Vitamina A", "Vitamina D3", "Astaxantina"]
+  },
+  {
+    "id": "v-italay",
+    "name": "V-ITALAY",
+    "price": 820,
+    "benefits": ["Tranquilidad y calma", "Antioxidante", "Disminuye estrés y ansiedad", "Reparador de sueño"],
+    "ingredients": ["Té Verde", "Pasiflora", "Valeriana", "Menta", "Hierba Tumba Vaquero"]
+  },
+  {
+    "id": "v-curcumax",
+    "name": "V-CURCUMAX",
+    "price": 950,
+    "benefits": ["Fortalece sistema inmunológico", "Aliviar molestias articulares", "Reparación de flora intestinal"],
+    "ingredients": ["Cúrcuma", "MSM", "Condroitina", "Vitamina C", "Selenio"]
+  },
+  {
+    "id": "v-control",
+    "name": "V-CONTROL",
+    "price": 1100,
+    "benefits": ["Estimula la tiroides", "Apoya al metabolismo", "Pérdida de grasa", "Saciedad"],
+    "ingredients": ["Toronjil", "Tejocote", "Alga Espirulina", "Acerola", "Nopal"]
+  },
+  {
+    "id": "v-collagen",
+    "name": "V-COLLAGEN",
+    "price": 980,
+    "benefits": ["Aumenta la fuerza", "Salud Ósea", "Tejido conectivo", "Piel juvenil", "Regeneración celular"],
+    "ingredients": ["Colágeno hidrolizado", "Vitamina C", "Fruto Noni", "MSM", "Extracto de uva ursi", "Lisina", "Vitamina B3 y B7"]
+  },
+  {
+    "id": "v-italboost",
+    "name": "V-ITALBOOST",
+    "price": 700,
+    "benefits": ["Control de alergias", "Antibiótico natural", "Fortalece sistema inmunológico", "Aliviar rinitis, amigdalitis"],
+    "ingredients": ["Ajo", "Flor de equinácea", "Vitamina C", "Jengibre", "Canela", "Fenogreco", "Cúrcuma", "Ají", "Vitamina D3"]
+  },
+  {
+    "id": "v-italix",
+    "name": "V-ITALIX",
+    "price": 860,
+    "benefits": ["Evita arrugas en la piel", "Desinflamatorio natural", "Elasticidad cutánea", "Aliviar dolor muscular"],
+    "ingredients": ["Ajo", "Cartílago de tiburón", "Vitamina C", "Curcumina", "Guaraná", "Carbonato de calcio", "Moringa", "Romero", "MSM"]
+  },
+  {
+    "id": "v-itax",
+    "name": "V-ITAX",
+    "price": 720,
+    "benefits": ["Multivitamínico", "Energía", "Sistema cognitivo", "Neurotransmisores", "Sistema inmunológico"],
+    "ingredients": ["Coenzima Q10", "Vitaminas A, C, D, E, K, B1-B12", "Ácido Fólico", "Calcio", "Yodo", "Zinc", "Selenio", "Cobre", "Manganeso", "Cromo", "Potasio", "Magnesio"]
+  },
+  {
+    "id": "vitalpro",
+    "name": "VITALPRO",
+    "price": 1400,
+    "benefits": ["Nivel cognitivo", "Sistema inmunológico", "Antioxidantes", "Sistema digestivo", "Energía y vitalidad"],
+    "ingredients": ["Aislado de proteína de suero de leche", "Colágeno hidrolizado", "Inulina de agave", "Sabor Vainilla", "Canela", "Stevia", "Calcio", "Yodo", "Magnesio", "Zinc", "Maca"]
+  },
+  {
+    "id": "v-nrgy",
+    "name": "V-NRGY",
+    "price": 890,
+    "benefits": ["Perder peso", "Energía natural", "Estado de ánimo", "Rendimiento cognitivo"],
+    "ingredients": ["Polvo de mango", "Ácido Cítrico", "DMAE", "Cafeína natural", "Vitamina C, D3, B1-B12", "L-Carnitina", "Cúrcuma", "L-teanina", "Té Verde", "Guaraná", "Stevia"]
+  },
+  {
+    "id": "v-nitro",
+    "name": "V-NITRO",
+    "price": 1150,
+    "benefits": ["Salud sexual", "Prevenir infartos", "Fortalecer el corazón", "Energía y rendimiento", "Circulación"],
+    "ingredients": ["L-Arginina", "L-Citrulina", "Sabor Naranja", "Glicerina", "Vitamina B3", "Potasio", "Pimienta Negra", "Betabel", "Noni", "Moringa", "Espinaca"]
+  },
+  {
+    "id": "vitalage-collagen",
+    "name": "VITALAGE COLLAGEN",
+    "price": 1300,
+    "benefits": ["Huesos sanos", "Piel radiante", "Mejorar sueño", "Cabello brillante", "Fuerza articulaciones"],
+    "ingredients": ["Péptidos Bioactivos de Colágeno bovino I, II, III", "Péptidos de Colágeno marino", "Sabor frambuesa", "Caldo de Hueso", "Vitamina C, E, B7", "Resveratrol", "Ácido Hialurónico"]
+  },
+  {
+    "id": "thermokafe",
+    "name": "THERMOKAFE",
+    "price": 650,
+    "benefits": ["Aumenta resistencia", "Acelera metabolismo", "Controlar apetito", "Pérdida de peso", "Mejora acción insulina"],
+    "ingredients": ["Café Negro Tostado Instantáneo", "L-Carnitina", "Guaraná", "Garcinia Cambogia", "Nicotinamida", "Jengibre", "Té Verde", "Ginseng", "Yerba Mate"]
+  },
+  {
+    "id": "lovkafe",
+    "name": "LOVKAFE",
+    "price": 700,
+    "benefits": ["Promueve fertilidad", "Revitaliza vida sexual", "Estado de ánimo", "Mejora circulación", "Equilibrio hormonal"],
+    "ingredients": ["Café Negro Tostado Instantáneo", "Tongkat Ali", "Tribulus terrestres", "Ginseng", "Raíz de Maca", "Shilajit", "L-Arginina"]
+  },
+  {
+    "id": "neurokafe",
+    "name": "NEUROKAFE",
+    "price": 750,
+    "benefits": ["Reduce estrés oxidativo", "Salud cognitiva", "Efecto antiestrés", "Energía y vitalidad", "Claridad y calma"],
+    "ingredients": ["Café Negro Tostado", "Inulina", "Probióticos", "Hongo Ganoderma", "Ginseng", "Ácido Fúlvico", "Vitaminas"]
+  },
+  {
+    "id": "ketokafe-bhb",
+    "name": "KETOKAFE-BHB",
+    "price": 800,
+    "benefits": ["Energía", "Nivel cognitivo", "Concentración", "Salud cerebral", "Cetosis"],
+    "ingredients": ["Café Negro Tostado", "Magnesio beta-hidroxibutirato", "Calcio beta-hidroxibutirato", "Sodio beta-hidroxibutirato"]
+  },
+  {
+    "id": "keto-plus",
+    "name": "KETO PLUS BHB",
+    "price": 950,
+    "benefits": ["Rendimiento físico", "Salud ósea", "Cetosis en el cuerpo", "Salud metabólica", "Claridad mental"],
+    "ingredients": ["Beta-hidroxibutirato de calcio, magnesio, sodio, potasio", "Pulpa de arándano", "Vitamina C", "Stevia"]
+  },
+  {
+    "id": "genius-shake",
+    "name": "GENIUS SHAKE",
+    "price": 1250,
+    "benefits": ["Combatir estrés", "Salud integral", "Desarrollo cognitivo infantil"],
+    "ingredients": ["Aislado de proteína de suero de leche", "Cacao", "Fibra de inulina", "Stevia", "Espinaca", "Zanahoria", "Maitake", "Shiitake", "Frutas y verduras"]
+  },
+  {
+    "id": "d-fence",
+    "name": "D FENCE",
+    "price": 850,
+    "benefits": ["Protege células cerebrales", "Desarrollo neurológico infantil", "Sistema inmunológico", "Prevenir enfermedades"],
+    "ingredients": ["Inulina de agave", "Pulpa de limón", "Vitamina C", "Stevia", "Magnesio", "Vitamina B3", "Cúrcuma", "Zinc", "Vitamina D3"]
+  },
+  {
+    "id": "smartbiotics",
+    "name": "SMARTBIOTICS",
+    "price": 790,
+    "benefits": ["Mejora digestión", "Impulsa aprendizaje", "Retener información", "Equilibrar flora intestinal"],
+    "ingredients": ["Lactobacillus acidophilus", "Lactobacillus rhamnosus", "Bifidobacterium", "Inulina de agave", "Pulpa de mango"]
+  }
+]

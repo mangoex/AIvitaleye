@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
@@ -340,6 +341,68 @@ app.post("/api/chat", async (req, res) => {
     res.json({ reply });
   } catch (error: any) {
     console.error("Error in chat:", error);
+    res.status(500).json({ error: error.message || "Error interno del servidor" });
+  }
+});
+
+// Endpoint for product recommendations
+app.post("/api/recommend-products", async (req, res) => {
+  try {
+    const { report } = req.body;
+
+    if (!report) {
+      return res.status(400).json({ error: "No report provided." });
+    }
+
+    const productsPath = path.join(process.cwd(), "src", "data", "products.json");
+    const productsData = fs.readFileSync(productsPath, "utf-8");
+
+    const prompt = `
+Actúa como un Iridólogo Clínico Experto y Asesor Nutricional.
+Se te ha proporcionado el siguiente informe clínico iridológico de un paciente:
+
+--- INICIO DEL REPORTE ---
+${report}
+--- FIN DEL REPORTE ---
+
+Y aquí tienes nuestro catálogo de productos disponibles en la clínica en formato JSON:
+--- INICIO DEL CATÁLOGO ---
+${productsData}
+--- FIN DEL CATÁLOGO ---
+
+Tu tarea es recomendar los mejores productos de este catálogo específicamente para tratar o apoyar las debilidades o hallazgos clínicos mencionados en el reporte del paciente.
+
+REGLAS ESTRICTAS DE SALIDA:
+Debes responder ÚNICA Y EXCLUSIVAMENTE con un arreglo (array) en formato JSON puro. No agregues texto antes ni después. No uses bloques de código tipo markdown.
+Cada objeto del arreglo debe tener la siguiente estructura exacta:
+{
+  "id": "id-del-producto",
+  "priority": número del 1 al 3 (donde 1 es Indispensable/Principal, 2 es Muy Recomendado, 3 es Opcional/Preventivo),
+  "justification": "Breve explicación de 2 o 3 líneas de por qué este producto ayudará al paciente, mencionando los ingredientes clave y el hallazgo del reporte que justifica la recomendación."
+}
+
+Solo recomienda productos que realmente apliquen al caso (máximo 5 productos). Si no hay suficientes hallazgos, recomienda al menos 1 producto general como V-ITAX o GENIUS SHAKE si es niño.
+La propiedad "id" debe coincidir exactamente con el "id" del catálogo proporcionado.
+`;
+
+    const jsonString = await callAIService({
+      prompt,
+      systemInstruction: "Eres un experto asesor nutricional clínico. Tu salida debe ser única y exclusivamente JSON puro válido, sin markdown, sin backticks ni explicaciones extra.",
+      temperature: 0.1,
+    });
+
+    try {
+      // Intentar limpiar posibles backticks (ej. ```json ... ```) si la IA ignora la regla
+      const cleanJson = jsonString.replace(/^```json/i, "").replace(/^```/, "").replace(/```$/, "").trim();
+      const recommendations = JSON.parse(cleanJson);
+      res.json({ recommendations });
+    } catch (parseError) {
+      console.error("Error parsing AI JSON response:", jsonString);
+      res.status(500).json({ error: "La IA no devolvió un formato JSON válido.", raw: jsonString });
+    }
+
+  } catch (error: any) {
+    console.error("Error in recommend-products:", error);
     res.status(500).json({ error: error.message || "Error interno del servidor" });
   }
 });

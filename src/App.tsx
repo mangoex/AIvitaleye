@@ -9,6 +9,7 @@ import {
 import { ManualEvaluationForm } from "./components/ManualEvaluationForm";
 import IrisMapExplorer from "./components/IrisMapExplorer";
 import { BodySystemsMap } from "./components/BodySystemsMap";
+import { ProductRecommendations } from "./components/ProductRecommendations";
 import ReportViewer from "./components/ReportViewer";
 import {
   Sparkles,
@@ -32,6 +33,7 @@ import {
   Activity,
   HeartPulse,
   Award,
+  ShoppingBag,
 } from "lucide-react";
 
 // Helper to procedurally generate a high-quality clinical iris image for sandbox simulation
@@ -645,6 +647,24 @@ export default function App() {
 
               <button
                 onClick={() => {
+                  setActiveTab("recommendations");
+                  setSelectedHistoricalReport(null);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
+                  activeTab === "recommendations" && !selectedHistoricalReport
+                    ? "bg-emerald-950/50 text-emerald-400 border-l-2 border-emerald-500"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>Recomendaciones</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+              </button>
+
+              <button
+                onClick={() => {
                   setActiveTab("chat");
                   setSelectedHistoricalReport(null);
                 }}
@@ -1196,6 +1216,11 @@ export default function App() {
                     <BodySystemsMap gender={patient.gender} report={report} />
                   </div>
                 </div>
+              )}
+
+              {/* C3. PRODUCT RECOMMENDATIONS */}
+              {activeTab === "recommendations" && (
+                <ProductRecommendations report={report} />
               )}
 
               {/* D. CLINICAL CLINIC ASSISTANT CHAT */}
