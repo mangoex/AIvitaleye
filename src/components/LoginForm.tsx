@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Lock, Mail, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Lock, Mail, Loader2, AlertCircle, Eye, EyeOff, UserPlus, LogIn } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface LoginFormProps {
@@ -7,8 +7,10 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onLogin }: LoginFormProps) {
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,11 +22,18 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       return;
     }
 
+    if (mode === "register" && password !== confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
+    const url = mode === "login" ? "/api/auth/login" : "/api/auth/register";
+
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -34,7 +43,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.error || "Credenciales incorrectas");
+        throw new Error(errData.error || (mode === "login" ? "Credenciales incorrectas" : "Error al registrar el usuario"));
       }
 
       const data = await response.json();
@@ -44,6 +53,13 @@ export function LoginForm({ onLogin }: LoginFormProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const toggleMode = () => {
+    setMode(mode === "login" ? "register" : "login");
+    setError(null);
+    setPassword("");
+    setConfirmPassword("");
   };
 
   return (
@@ -60,10 +76,15 @@ export function LoginForm({ onLogin }: LoginFormProps) {
         {/* Title / Brand Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-emerald-950/80 border border-emerald-500/30 rounded-2xl flex items-center justify-center text-emerald-400 mx-auto mb-4 shadow-lg shadow-emerald-900/20">
-            <Lock className="w-7 h-7" />
+            {mode === "login" ? <Lock className="w-7 h-7" /> : <UserPlus className="w-7 h-7" />}
           </div>
           <h2 className="text-2xl font-black text-white tracking-tight">Iridoclinic Suite</h2>
-          <p className="text-xs text-slate-400 mt-2">Inicie sesión para acceder al analizador clínico</p>
+          <p className="text-xs text-slate-400 mt-2">
+            {mode === "login" 
+              ? "Inicie sesión para acceder al analizador clínico" 
+              : "Regístrese para crear su cuenta de iridólogo"
+            }
+          </p>
         </div>
 
         {error && (
@@ -113,12 +134,31 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading}
-                className="absolute right-4 top-3.5 text-slate-500 hover:text-slate-300 transition-colors"
+                className="absolute right-4 top-3.5 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
+
+          {/* Confirm Password input (Register Mode only) */}
+          {mode === "register" && (
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">Confirmar Contraseña</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-3.5 w-4 h-4 text-slate-500" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full bg-slate-950/80 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 text-slate-100 text-sm pl-11 pr-12 py-3 rounded-xl transition-all outline-none"
+                  required
+                />
+              </div>
+            </div>
+          )}
 
           {/* Submit button */}
           <button
@@ -129,13 +169,35 @@ export function LoginForm({ onLogin }: LoginFormProps) {
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Autenticando...</span>
+                <span>{mode === "login" ? "Autenticando..." : "Creando cuenta..."}</span>
+              </>
+            ) : mode === "login" ? (
+              <>
+                <LogIn className="w-4 h-4" />
+                <span>Ingresar al Sistema</span>
               </>
             ) : (
-              <span>Ingresar al Sistema</span>
+              <>
+                <UserPlus className="w-4 h-4" />
+                <span>Registrarse</span>
+              </>
             )}
           </button>
         </form>
+
+        {/* Toggle Mode Link */}
+        <div className="text-center mt-6">
+          <button
+            onClick={toggleMode}
+            disabled={isLoading}
+            className="text-xs text-emerald-400 hover:text-emerald-300 hover:underline transition-colors font-medium cursor-pointer"
+          >
+            {mode === "login" 
+              ? "¿No tiene cuenta? Regístrese aquí" 
+              : "¿Ya tiene una cuenta? Inicie sesión aquí"
+            }
+          </button>
+        </div>
 
         <div className="text-center mt-8 border-t border-slate-800/80 pt-6">
           <p className="text-[10px] text-slate-500 font-mono">

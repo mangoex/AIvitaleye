@@ -269,6 +269,48 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email y contraseña son obligatorios" });
+    }
+    
+    // Check if email already exists
+    const existing = await query("SELECT * FROM users WHERE email = ?", [email]);
+    if (existing.length > 0) {
+      return res.status(400).json({ error: "El correo electrónico ya está registrado" });
+    }
+    
+    const hashedPassword = hashPassword(password);
+    
+    // Create new user (default role is "user" / iridologo)
+    await query("INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)", [
+      email,
+      hashedPassword,
+      "user"
+    ]);
+    
+    // Auto-login after registration (generate JWT token)
+    const newUser = await query("SELECT id, email, role FROM users WHERE email = ?", [email]);
+    const user = newUser[0];
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+    
+    res.json({
+      success: true,
+      token,
+      user: { id: user.id, email: user.email, role: user.role }
+    });
+  } catch (error: any) {
+    console.error("Register error:", error);
+    res.status(500).json({ error: "Error al registrar el usuario" });
+  }
+});
+
 // Patients endpoints
 app.get("/api/patients", authenticateToken, async (req: any, res) => {
   try {
