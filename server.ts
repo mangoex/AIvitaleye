@@ -209,7 +209,7 @@ Debes estructurar tu salida SIEMPRE con la siguiente jerarquía visual exacta (e
 [A partir del diagnóstico, enumera posibles síntomas cotidianos en lenguaje MUY SENCILLO para el paciente. Usa este formato estricto:
 - Sistema Nervioso: [Síntomas separados por comas, ej: Insomnio, estrés, dolores de cabeza]
 - Sistema Respiratorio: [Síntomas separados por comas]
-- Sistema Circulatorio y Linfático: [Síntomas separados por comas, ej: Mala circulación, pesadez]
+- Cardiovascular (Circulatorio) y Linfático: [Síntomas separados por comas, ej: Mala circulación, pesadez]
 - Sistema Digestivo: [Síntomas separados por comas, ej: Indigestión, gases, intestino lento]
 - Sistema de Eliminación: [Síntomas separados por comas]
 Nota: Si no hay hallazgos para un sistema, escribe "Sin síntomas evidentes".]
