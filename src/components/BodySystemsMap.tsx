@@ -79,37 +79,75 @@ export function BodySystemsMap({ gender, report }: BodySystemsMapProps) {
   let dynamicIssues = [...baseSystem.commonIssues];
 
   if (report) {
-    // 1. Chunking del reporte (reutilizando la heurística probada del mapa iridológico)
-    const chunks = report
-      .replace(/([.!?])\s+(?:[-*]\s+)?(?=[A-Z0-9#])/g, "$1\n")
-      .replace(/###.*?\n/g, "")
-      .split("\n")
-      .map(s => s.trim().replace(/^[-*]\s*/, ""))
-      .filter(s => s.length > 15);
+    let usedNewFormat = false;
 
-    // 2. Filtrado de chunks por palabras clave del sistema activo
-    const matches = chunks.filter(sentence => {
-      const lower = sentence.toLowerCase();
-      return baseSystem.keywords.some(kw => lower.includes(kw));
-    });
-
-    // 3. Lógica de Riesgo y Asignación de Hallazgos
-    if (matches.length === 0) {
-      dynamicRisk = 'low';
-      dynamicIssues = ['Sin hallazgos clínicos relevantes detectados por la IA en este sistema.'];
-    } else {
-      // Limpiar asteriscos y tomar máximo 4 oraciones
-      dynamicIssues = matches.map(m => m.replace(/[\*\*]/g, "")).slice(0, 4);
-      
-      const hasAlarmingKeywords = matches.some(m => {
-        const lower = m.toLowerCase();
-        return lower.includes('crónico') || lower.includes('grave') || lower.includes('agudo') || lower.includes('severo') || lower.includes('alto riesgo');
+    // Buscar la nueva sección de Resumen de Síntomas
+    const summaryMatch = report.match(/Resumen de Síntomas Comunes([\s\S]*)$/i);
+    if (summaryMatch) {
+      const summaryText = summaryMatch[1];
+      // Buscar la línea que corresponda a este sistema
+      const lines = summaryText.split('\n').filter(l => l.trim().length > 0);
+      const systemLine = lines.find(l => {
+        const lower = l.toLowerCase();
+        return baseSystem.keywords.some(kw => lower.includes(kw));
       });
 
-      if (matches.length >= 3 || hasAlarmingKeywords) {
-        dynamicRisk = 'high';
+      if (systemLine) {
+        usedNewFormat = true;
+        // Limpiar el inicio de la línea (ej. "- Sistema Nervioso:")
+        const rawSymptoms = systemLine.replace(/^[-*]\s*/, '').replace(/^.*?:/, '').trim();
+        
+        if (rawSymptoms.toLowerCase().includes('sin síntomas evidentes') || rawSymptoms.toLowerCase().includes('sin riesgos evidentes')) {
+          dynamicRisk = 'low';
+          dynamicIssues = ['Sin síntomas evidentes detectados por la IA en este sistema.'];
+        } else {
+          // Separar por comas
+          dynamicIssues = rawSymptoms.split(',').map(s => s.trim().replace(/\.$/, '')).filter(s => s.length > 0);
+          
+          // Evaluar riesgo basado en palabras clave o cantidad de síntomas
+          const hasAlarmingKeywords = dynamicIssues.some(m => {
+            const lower = m.toLowerCase();
+            return lower.includes('crónico') || lower.includes('grave') || lower.includes('agudo') || lower.includes('severo') || lower.includes('fuerte');
+          });
+
+          if (dynamicIssues.length >= 3 || hasAlarmingKeywords) {
+            dynamicRisk = 'high';
+          } else {
+            dynamicRisk = 'medium';
+          }
+        }
+      }
+    }
+
+    // Fallback: Si no encontró la sección nueva, usa la extracción original por oraciones
+    if (!usedNewFormat) {
+      const chunks = report
+        .replace(/([.!?])\s+(?:[-*]\s+)?(?=[A-Z0-9#])/g, "$1\n")
+        .replace(/###.*?\n/g, "")
+        .split("\n")
+        .map(s => s.trim().replace(/^[-*]\s*/, ""))
+        .filter(s => s.length > 15);
+
+      const matches = chunks.filter(sentence => {
+        const lower = sentence.toLowerCase();
+        return baseSystem.keywords.some(kw => lower.includes(kw));
+      });
+
+      if (matches.length === 0) {
+        dynamicRisk = 'low';
+        dynamicIssues = ['Sin hallazgos clínicos relevantes detectados por la IA en este sistema.'];
       } else {
-        dynamicRisk = 'medium';
+        dynamicIssues = matches.map(m => m.replace(/[\*\*]/g, "")).slice(0, 4);
+        const hasAlarmingKeywords = matches.some(m => {
+          const lower = m.toLowerCase();
+          return lower.includes('crónico') || lower.includes('grave') || lower.includes('agudo') || lower.includes('severo') || lower.includes('alto riesgo');
+        });
+
+        if (matches.length >= 3 || hasAlarmingKeywords) {
+          dynamicRisk = 'high';
+        } else {
+          dynamicRisk = 'medium';
+        }
       }
     }
   }

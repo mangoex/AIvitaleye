@@ -204,6 +204,15 @@ Debes estructurar tu salida SIEMPRE con la siguiente jerarquía visual exacta (e
 
 ### 💡 Recomendaciones de Soporte (Orientación naturopática/clínica basada en el terreno observado)
 [Pautas terapéuticas de soporte natural: nutrición específica, plantas medicinales adaptógenas/depurativas, hidroterapia, gestión de estrés o estímulos de eliminación tisular acordes al terreno]
+
+### ⚙️ Resumen de Síntomas Comunes (Lenguaje Sencillo)
+[A partir del diagnóstico, enumera posibles síntomas cotidianos en lenguaje MUY SENCILLO para el paciente. Usa este formato estricto:
+- Sistema Nervioso: [Síntomas separados por comas, ej: Insomnio, estrés, dolores de cabeza]
+- Sistema Respiratorio: [Síntomas separados por comas]
+- Cardiovascular y Linfático: [Síntomas separados por comas]
+- Sistema Digestivo: [Síntomas separados por comas, ej: Indigestión, gases, intestino lento]
+- Sistema de Eliminación: [Síntomas separados por comas]
+Nota: Si no hay hallazgos para un sistema, escribe "Sin síntomas evidentes".]
 `;
 
 // Endpoint for manual structured evaluation
@@ -294,6 +303,7 @@ Escribe el informe final respetando estrictamente el formato clínico estructura
 - ### 🔍 Signos Iridianos Clave (Estructurales, Pigmentarios y Reflejos)
 - ### 🎯 Interpretación Fisiológica (Relación causa-efecto en los sistemas orgánicos)
 - ### 💡 Recomendaciones de Soporte (Orientación naturopática/clínica basada en el terreno observado)
+- ### ⚙️ Resumen de Síntomas Comunes (Lenguaje Sencillo)
 
 Recuerda: Usa terminología científica e iridológica pura de las escuelas Josef Deck, Josef Angerer o Bernard Jensen. No nombres enfermedades formales (como diabetes o cirrosis), sino debilidad tisular, acidosis tisular, congestión hepatobiliar, hipofunción renal, etc.
 `;
