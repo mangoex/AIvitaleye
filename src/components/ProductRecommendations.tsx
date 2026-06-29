@@ -5,6 +5,7 @@ import productsData from '../data/products.json';
 
 interface ProductRecommendationsProps {
   report: string | null;
+  token: string;
 }
 
 interface Product {
@@ -22,7 +23,7 @@ interface AIRecommendation {
   justification: string;
 }
 
-export function ProductRecommendations({ report }: ProductRecommendationsProps) {
+export function ProductRecommendations({ report, token }: ProductRecommendationsProps) {
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +37,10 @@ export function ProductRecommendations({ report }: ProductRecommendationsProps) 
     try {
       const response = await fetch('/api/recommend-products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ report })
       });
 

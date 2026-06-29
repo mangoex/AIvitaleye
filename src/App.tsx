@@ -1563,7 +1563,7 @@ export default function App() {
 
               {/* C3. PRODUCT RECOMMENDATIONS */}
               {activeTab === "recommendations" && (
-                <ProductRecommendations report={report} />
+                <ProductRecommendations report={report} token={token!} />
               )}
 
               {/* D. CLINICAL CLINIC ASSISTANT CHAT */}
