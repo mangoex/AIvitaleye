@@ -41,7 +41,7 @@ const BODY_SYSTEMS: BodySystem[] = [
   },
   {
     id: 'cardiovascular',
-    name: 'Cardiovascular y Linfático',
+    name: 'Sistema Circulatorio y Linfático',
     position: { top: '34%', left: '58%' }, // Heart / Left chest
     riskLevel: 'medium',
     commonIssues: ['Mala circulación periférica', 'Retención de líquidos', 'Pesadez en piernas'],
