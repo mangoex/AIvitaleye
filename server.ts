@@ -277,7 +277,7 @@ app.get("/api/patients", authenticateToken, async (req: any, res) => {
     res.json({ patients });
   } catch (error: any) {
     console.error("Error fetching patients:", error);
-    res.status(500).json({ error: "Error al obtener pacientes" });
+    res.status(500).json({ error: "Error al obtener contactos" });
   }
 });
 
@@ -295,7 +295,7 @@ app.post("/api/patients", authenticateToken, async (req: any, res) => {
     res.json({ patient: inserted[0] });
   } catch (error: any) {
     console.error("Error creating patient:", error);
-    res.status(500).json({ error: "Error al crear paciente" });
+    res.status(500).json({ error: "Error al crear contacto" });
   }
 });
 
@@ -323,13 +323,13 @@ app.post("/api/reports", authenticateToken, async (req: any, res) => {
     const { patientId, type, date, evaluationJson, reportText } = req.body;
     const userId = req.user.id;
     if (!patientId || !reportText) {
-      return res.status(400).json({ error: "Paciente e informe son obligatorios" });
+      return res.status(400).json({ error: "Contacto e informe son obligatorios" });
     }
     
     // Verify patient belongs to user
     const patients = await query("SELECT id FROM patients WHERE id = ? AND user_id = ?", [patientId, userId]);
     if (patients.length === 0) {
-      return res.status(404).json({ error: "Paciente no encontrado" });
+      return res.status(404).json({ error: "Contacto no encontrado" });
     }
 
     await query(
@@ -468,7 +468,7 @@ app.post("/api/analyze-manual", authenticateToken, async (req, res) => {
     } = req.body;
 
     const prompt = `
-Realiza un informe iridológico clínico profesional completo para el siguiente paciente:
+Realiza un informe iridológico clínico profesional completo para el siguiente contacto:
 - Nombre/ID: ${patientName || "Anónimo"}
 - Edad: ${age || "No especificada"} años
 - Género: ${gender || "No especificado"}
@@ -509,8 +509,8 @@ app.post("/api/analyze-photo", authenticateToken, async (req, res) => {
     }
 
     const prompt = `
-Analiza detenidamente esta fotografía macro/micro del iris de un paciente clínico.
-- Nombre/ID Paciente: ${patientName || "Anónimo"}
+Analiza detenidamente esta fotografía macro/micro del iris de un contacto clínico.
+- Nombre/ID Contacto: ${patientName || "Anónimo"}
 - Edad: ${age || "No especificada"}
 - Género: ${gender || "No especificado"}
 - Notas Clínicas Adicionales: ${additionalNotes || "Ninguna"}
@@ -593,7 +593,7 @@ app.post("/api/recommend-products", authenticateToken, async (req, res) => {
 
     const prompt = `
 Actúa como un Iridólogo Clínico Experto y Asesor Nutricional.
-Se te ha proporcionado el siguiente informe clínico iridológico de un paciente:
+Se te ha proporcionado el siguiente informe clínico iridológico de un contacto:
 
 --- INICIO DEL REPORTE ---
 ${report}
@@ -604,7 +604,7 @@ Y aquí tienes nuestro catálogo de productos disponibles en la clínica en form
 ${productsData}
 --- FIN DEL CATÁLOGO ---
 
-Tu tarea es recomendar los mejores productos de este catálogo específicamente para tratar o apoyar las debilidades o hallazgos clínicos mencionados en el reporte del paciente.
+Tu tarea es recomendar los mejores productos de este catálogo específicamente para tratar o apoyar las debilidades o hallazgos clínicos mencionados en el reporte del contacto.
 
 REGLAS ESTRICTAS DE SALIDA:
 Debes responder ÚNICA Y EXCLUSIVAMENTE con un arreglo (array) en formato JSON puro. No agregues texto antes ni después. No uses bloques de código tipo markdown.
@@ -613,7 +613,7 @@ Cada objeto del arreglo debe tener la siguiente estructura exacta:
   "id": "id-del-producto",
   "priority": número del 1 al 3 (donde 1 es Indispensable/Principal, 2 es Muy Recomendado, 3 es Opcional/Preventivo),
   "system": "El nombre del sistema del cuerpo al que apoya este producto (ej. 'Sistema Nervioso', 'Cardiovascular', 'Sistema Digestivo', 'Soporte Inmunológico', etc.)",
-  "justification": "Breve explicación de 2 o 3 líneas de por qué este producto ayudará al paciente, mencionando los ingredientes clave y el hallazgo del reporte que justifica la recomendación."
+  "justification": "Breve explicación de 2 o 3 líneas de por qué este producto ayudará al contacto, mencionando los ingredientes clave y el hallazgo del reporte que justifica la recomendación."
 }
 
 Solo recomienda productos que realmente apliquen al caso (máximo 5 productos). Si no hay suficientes hallazgos, recomienda al menos 1 producto general como V-ITAX o GENIUS SHAKE si es niño.

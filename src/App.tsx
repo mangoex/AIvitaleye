@@ -254,6 +254,7 @@ export default function App() {
         const data = await res.json();
         const mapped = (data.reports || []).map((r: any) => ({
           id: String(r.id),
+          patientId: r.patient_id,
           date: r.date,
           patientName: r.patient_name,
           age: String(r.patient_age || "No especificada"),
@@ -288,7 +289,7 @@ export default function App() {
         },
         body: JSON.stringify({ name, age, gender, notes })
       });
-      if (!res.ok) throw new Error("Error al guardar paciente");
+      if (!res.ok) throw new Error("Error al guardar contacto");
       const data = await res.json();
       const newPatient = data.patient;
       
@@ -303,7 +304,7 @@ export default function App() {
       return newPatient;
     } catch (err) {
       console.error(err);
-      alert("No se pudo registrar el paciente.");
+      alert("No se pudo registrar el contacto.");
     }
   };
 
@@ -383,7 +384,7 @@ export default function App() {
   const handleAnalyzeManual = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPatientId) {
-      alert("Por favor seleccione un paciente antes de iniciar el análisis.");
+      alert("Por favor seleccione un contacto antes de iniciar el análisis.");
       return;
     }
     setIsAnalyzing(true);
@@ -432,7 +433,7 @@ export default function App() {
   const handleAnalyzePhoto = async () => {
     if (!photoPreview) return;
     if (!selectedPatientId) {
-      alert("Por favor seleccione un paciente antes de iniciar el análisis.");
+      alert("Por favor seleccione un contacto antes de iniciar el análisis.");
       return;
     }
     setIsAnalyzing(true);
@@ -483,7 +484,7 @@ export default function App() {
   // Save report to clinical history
   const handleSaveReport = async () => {
     if (!report || !selectedPatientId) {
-      alert("Por favor seleccione un paciente antes de guardar el informe.");
+      alert("Por favor seleccione un contacto antes de guardar el informe.");
       return;
     }
 
@@ -702,14 +703,30 @@ export default function App() {
                             gender: pat.gender,
                             notes: pat.notes || ""
                           });
+
+                          // Automatically load latest report for this contact
+                          const patientReports = savedReports.filter(r => r.patientId === Number(id) || r.patientName === pat.name);
+                          if (patientReports.length > 0) {
+                            const latest = patientReports[0];
+                            setReport(latest.reportText);
+                            setIsReportSaved(true);
+                            if (latest.type === "manual" && latest.evaluation) {
+                              setManualEvaluation(latest.evaluation);
+                            }
+                          } else {
+                            setReport(null);
+                            setIsReportSaved(false);
+                          }
                         }
                       } else {
                         setPatient({ name: "", age: "", gender: "masculino", notes: "" });
+                        setReport(null);
+                        setIsReportSaved(false);
                       }
                     }}
                     className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-600 outline-none"
                   >
-                    <option value="">-- Seleccionar Paciente --</option>
+                    <option value="">-- Seleccionar Contacto --</option>
                     {patients.map(p => (
                       <option key={p.id} value={p.id}>{p.name} ({p.age} años)</option>
                     ))}
@@ -995,14 +1012,30 @@ export default function App() {
                             gender: pat.gender,
                             notes: pat.notes || ""
                           });
+
+                          // Automatically load latest report for this contact
+                          const patientReports = savedReports.filter(r => r.patientId === Number(id) || r.patientName === pat.name);
+                          if (patientReports.length > 0) {
+                            const latest = patientReports[0];
+                            setReport(latest.reportText);
+                            setIsReportSaved(true);
+                            if (latest.type === "manual" && latest.evaluation) {
+                              setManualEvaluation(latest.evaluation);
+                            }
+                          } else {
+                            setReport(null);
+                            setIsReportSaved(false);
+                          }
                         }
                       } else {
                         setPatient({ name: "", age: "", gender: "masculino", notes: "" });
+                        setReport(null);
+                        setIsReportSaved(false);
                       }
                     }}
                     className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-600 outline-none"
                   >
-                    <option value="">-- Seleccionar Paciente --</option>
+                    <option value="">-- Seleccionar Contacto --</option>
                     {patients.map(p => (
                       <option key={p.id} value={p.id}>{p.name} ({p.age} años)</option>
                     ))}
@@ -1730,7 +1763,7 @@ export default function App() {
 
                     {/* Clinical disclaimer regarding terminology */}
                     <div className="bg-emerald-950/20 p-4 rounded-xl border border-emerald-900/30 text-xs text-emerald-200/90 leading-relaxed font-sans">
-                      <strong>Uso Ético de la Terminología:</strong> Recuerde que en Iridología Clínica Profesional nos expresamos en términos de "hipofunción", "estasis linfática", "sobrecarga ácida", "espasmo neuromuscular" o "reactividad del terreno". Nunca use diagnósticos nominales médicos oficiales con pacientes de forma temeraria o sin su respectiva validación alopática.
+                      <strong>Uso Ético de la Terminología:</strong> Recuerde que en Iridología Clínica Profesional nos expresamos en términos de "hipofunción", "estasis linfática", "sobrecarga ácida", "espasmo neuromuscular" o "reactividad del terreno". Nunca use diagnósticos nominales médicos oficiales con contactos de forma temeraria o sin su respectiva validación alopática.
                     </div>
                   </div>
                 </div>
@@ -1746,7 +1779,7 @@ export default function App() {
                         Historial de Evaluaciones Iridológicas
                       </h2>
                       <p className="text-xs text-slate-400 mt-1">
-                        Consulte los informes clínicos guardados localmente sobre las constituciones y terrenos observados en sus pacientes.
+                        Consulte los informes clínicos guardados localmente sobre las constituciones y terrenos observados en sus contactos.
                       </p>
                     </div>
 

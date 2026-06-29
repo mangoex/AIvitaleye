@@ -46,6 +46,7 @@ export interface IridologyEvaluation {
 
 export interface SavedReport {
   id: string;
+  patientId?: number;
   date: string;
   patientName: string;
   age: string;

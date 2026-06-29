@@ -201,7 +201,7 @@ export default function ReportViewer({
             <p className="text-xs text-slate-400 mt-1 font-mono">Iridología Clínica - Enfoque Basado en la Evidencia</p>
           </div>
           <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800 text-xs font-mono text-slate-300 space-y-1 w-full sm:w-auto">
-            <div><span className="text-slate-500">Paciente:</span> <span className="font-semibold text-slate-100">{patientName}</span></div>
+            <div><span className="text-slate-500">Contacto:</span> <span className="font-semibold text-slate-100">{patientName}</span></div>
             <div className="flex gap-4">
               <div><span className="text-slate-500">Edad:</span> <span className="text-slate-200">{age} años</span></div>
               <div><span className="text-slate-500">Género:</span> <span className="text-slate-200 capitalize">{gender}</span></div>
