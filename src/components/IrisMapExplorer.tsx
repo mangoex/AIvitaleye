@@ -215,7 +215,7 @@ export default function IrisMapExplorer({ report }: IrisMapExplorerProps) {
       {/* Clinical Details Panels (Right Side) */}
       <div className="lg:col-span-6 flex flex-col justify-between bg-slate-950/40 p-5 rounded-xl border border-slate-800/80" id="sector-details-panel">
         {/* Selector rápido de Sectores para mayor usabilidad */}
-        <div className="mb-5 pb-4 border-b border-slate-800/60">
+        <div className="hidden lg:block mb-5 pb-4 border-b border-slate-800/60">
           <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest font-mono block mb-2">
             Navegación Rápida de Sectores:
           </span>
@@ -292,7 +292,7 @@ export default function IrisMapExplorer({ report }: IrisMapExplorerProps) {
             </div>
 
             {/* Clinical Interpretation Guidelines */}
-            <div className="bg-emerald-950/25 p-4 rounded-lg border border-emerald-900/40">
+            <div className="hidden lg:block bg-emerald-950/25 p-4 rounded-lg border border-emerald-900/40">
               <h4 className="text-xs font-mono font-bold text-emerald-400 flex items-center gap-1.5 mb-1.5">
                 <Info className="w-3.5 h-3.5" />
                 Significación Clínica General (Referencia):
