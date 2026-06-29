@@ -1,9 +1,8 @@
-import sqlite3 from "sqlite3";
 import { Pool } from "pg";
 import crypto from "crypto";
 
 let pgPool: Pool | null = null;
-let sqliteDb: sqlite3.Database | null = null;
+let sqliteDb: any = null;
 
 const isPostgres = !!process.env.DATABASE_URL;
 
@@ -74,7 +73,10 @@ export async function initDb() {
       );
     `);
   } else {
-    sqliteDb = new sqlite3.Database("./iridology.db", (err) => {
+    // Dynamic import to prevent loading native bindings in production environment
+    const sqlite3Module = await import("sqlite3");
+    const sqlite3 = sqlite3Module.default || sqlite3Module;
+    sqliteDb = new sqlite3.Database("./iridology.db", (err: any) => {
       if (err) {
         console.error("[DB] Error opening SQLite database:", err);
       } else {
