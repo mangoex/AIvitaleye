@@ -74,6 +74,17 @@ html.light {
   --color-purple-900: #f3e8ff; /* Light purple border/divider */
   --color-purple-950: #faf5ff; /* Light purple background */
   
+  /* Indigo (Systems highlights - Dark indigo text, Light lavender backgrounds/borders) */
+  --color-indigo-50: #0f172a;   /* Extremely dark indigo */
+  --color-indigo-100: #1e1b4b;  /* Very dark indigo */
+  --color-indigo-200: #1e1b4b;  /* Dark indigo text */
+  --color-indigo-300: #312e81;  /* Dark indigo text */
+  --color-indigo-400: #3730a3;  /* Strong indigo text */
+  --color-indigo-500: #4338ca;  /* Active indigo highlight */
+  --color-indigo-800: #c7d2fe;  /* Light indigo border */
+  --color-indigo-900: #e0e7ff;  /* Light indigo border/divider */
+  --color-indigo-950: #e0e7ff;  /* Light indigo background */
+  
   /* Rose (Error / Alerts - Dark red text, Light red backgrounds) */
   --color-rose-50: #4c0519;
   --color-rose-100: #6f0d22;
